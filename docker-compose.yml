@@ -1,0 +1,152 @@
+version: '3.8'
+services:
+  daml-postgres:
+    image: postgres:12
+    ports:
+      - "5432:5432"
+    command: -c ssl=on -c ssl_cert_file=/data/certs/server/certs/db.$DOMAIN.cert.pem -c ssl_key_file=/data/certs/server/private/db.$DOMAIN.key.pem -c ssl_ca_file=/data/certs/intermediate/certs/ca-chain.cert.pem -c ssl_min_protocol_version="TLSv1.2" -c ssl_ciphers="HIGH:!MEDIUM:+3DES:!aNULL"
+    environment:
+      POSTGRES_PASSWORD: "ChangeDefaultPassword!"
+    volumes:
+      - data:/data:rw
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      default:
+        aliases:
+          - db.$DOMAIN
+
+  daml-nginx:
+    image: nginx:1.19.1-alpine
+    #command: [nginx-debug, '-g', 'daemon off;']
+    command: [nginx, '-g', 'daemon off;', '-p', '/data/nginx-conf', '-c', '/data/nginx-conf/nginx.conf']
+    #environment:
+    #  NGINX_ENTRYPOINT_QUIET_LOGS: 1
+    ports:
+      - "443:443"
+      - "8000:8000"
+      - "8443:8443"
+    volumes:
+      - data:/data:rw
+    depends_on:
+      - daml-jsonapi
+      - daml-frontend
+    networks:
+      default:
+        aliases:
+          - web.$DOMAIN
+
+  daml-envoyproxy:
+    image: envoyproxy/envoy-alpine:v1.15-latest
+    ports:
+      - "10000:10000"
+    volumes:
+      - data:/data:rw
+    command:  -c /data/edge-tls.yaml -l debug
+    depends_on:
+      - daml-ledger
+    networks:
+      default:
+        aliases:
+          - envoy.$DOMAIN
+
+  daml-ledger:
+    image: $DOCKER_IMAGE
+    #user: "${UID}:${GID}"
+    command: bash -c "~/.daml/bin/daml sandbox /data/dist/ex-secure-daml-infra-0.0.1.dar --address 0.0.0.0 --port 6865 --client-auth $CLIENT_CERT_AUTH_PARAM --sql-backend-jdbcurl \"jdbc:postgresql://db.$DOMAIN/postgres?user=postgres&password=ChangeDefaultPassword!&ssl=on\" $SIGNER_URL --log-level DEBUG --ledgerid $LEDGER_ID --cacrt /data/certs/intermediate/certs/ca-chain.cert.pem --pem /data/certs/server/private/ledger.$DOMAIN.key.pem --crt /data/certs/server/certs/ledger.$DOMAIN.cert.pem"
+    volumes:
+      - data:/data:rw
+    ports:
+      - "6865:6865"
+    depends_on:
+      - daml-postgres
+    networks:
+      default:
+        aliases:
+          - ledger.$DOMAIN
+
+  daml-jsonapi:
+    image: $DOCKER_IMAGE
+    command: bash -c "while !</dev/tcp/ledger.$DOMAIN/6865; do sleep 5; done; ~/.daml/bin/daml json-api --ledger-host ledger.$DOMAIN --ledger-port 6865 --address 0.0.0.0 --http-port 7575 --max-inbound-message-size 4194304 --package-reload-interval 5s --application-id HTTP-JSON-API-Gateway --query-store-jdbc-config \"driver=org.postgresql.Driver,url=jdbc:postgresql://db.$DOMAIN:5432/postgres?&ssl=true,user=postgres,password=ChangeDefaultPassword!,createSchema=false\" --cacrt /data/certs/intermediate/certs/ca-chain.cert.pem $CLIENT_CERT_PARAM --tls --access-token-file=/data/certs/jwt/json.token"
+    ports:
+      - "7575:7575"
+    volumes:
+      - data:/data:rw
+    depends_on:
+      - daml-ledger
+    networks:
+      default:
+        aliases:
+          - jsonapi.$DOMAIN
+
+  daml-frontend:
+    image: "node:14.7.0-alpine3.12"
+    volumes:
+      - data:/data:rw
+    ports:
+      - "3000:3000"
+    working_dir: /data/ui
+    command: "npm start"
+    stdin_open: true
+    depends_on:
+      - daml-init
+    networks:
+      default:
+        aliases:
+          - frontend.$DOMAIN
+
+  daml-init:
+    image: $DOCKER_IMAGE
+    command: bash -c "while !</dev/tcp/ledger.$DOMAIN/6865; do sleep 5; done; ~/.daml/bin/daml script --dar /data/dist/ex-secure-daml-infra-0.0.1.dar --script-name Setup:initialize --ledger-host ledger.$DOMAIN --ledger-port 6865 --access-token-file=/data/certs/jwt/m2m.token --application-id ex-secure-daml-infra --tls $CLIENT_CERT_PARAM --cacrt /data/certs/intermediate/certs/ca-chain.cert.pem"
+    volumes:
+      - data:/data:rw
+    depends_on:
+      - daml-ledger
+
+  daml-trigger:
+    image: $DOCKER_IMAGE
+    command: bash -c "while !</dev/tcp/ledger.$DOMAIN/6865; do sleep 5; done; sleep 10; ~/.daml/bin/daml trigger --dar /data/dist/ex-secure-daml-infra-0.0.1.dar --trigger-name BobTrigger:rejectTrigger --ledger-host ledger.$DOMAIN --ledger-port 6865 --ledger-party Bob --application-id ex-secure-daml-infra --access-token-file=/data/certs/jwt/bob.token --tls $CLIENT_CERT_PARAM --cacrt /data/certs/intermediate/certs/ca-chain.cert.pem "
+    volumes:
+      - data:/data:rw
+    depends_on:
+      - daml-init
+
+  daml-navigator:
+    image: $DOCKER_IMAGE
+    command: bash -c "while !</dev/tcp/ledger.$DOMAIN/6865; do sleep 5; done; sleep 10; ~/.daml/bin/daml navigator server --config-file /data/ui-backend.conf --cacrt /data/certs/intermediate/certs/ca-chain.cert.pem --tls $CLIENT_CERT_PARAM --access-token-file /data/certs/jwt/navigator.token ledger.$DOMAIN 6865  "
+    volumes:
+      - data:/data:rw
+    depends_on:
+      - daml-ledger
+
+  daml-authnode:
+    image: authnode:latest
+    ports:
+      - "4443:4443"
+    working_dir: /data
+    entrypoint: ["python3", "auth-service.py", "./certs/signing/jwt-sign.$DOMAIN.key.pem", "./certs/jwt/jwks.json", "./accounts.json", "$LEDGER_ID",  "./certs/server/private/auth.$DOMAIN.key.pem", "./certs/server/certs/auth-chain.$DOMAIN.cert.pem"]
+    volumes:
+      - data:/data:rw
+    networks:
+      default:
+        aliases:
+          - auth.$DOMAIN
+
+  daml-testnode:
+    image: alpine:latest
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t
+    working_dir: /data
+    command: sh
+    volumes:
+      - data:/data:rw
+    depends_on:
+      - daml-ledger
+
+volumes:
+  data:
+    external: true
+

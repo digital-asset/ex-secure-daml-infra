@@ -1,0 +1,100 @@
+#
+# Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+
+version: 2.1
+
+commands:
+  install_sdk:
+    description: "Install the DAML SDK"
+    parameters:
+      version:
+        type: string
+    steps:
+      - run:
+          command: |
+            export TERM=xterm-256color
+            curl -sSL https://get.daml.com/ | sh /dev/stdin << parameters.version >>
+
+jobs:
+  ledger_test:
+    parameters:
+      daml_sdk_version:
+        type: string
+    docker:
+      - image: circleci/buildpack-deps:latest
+    resource_class: small
+    working_directory: /home/circleci/ex-secure-daml-infra
+
+    environment:
+      TEST_RESULTS: /tmp/test-results
+
+    steps:
+      - checkout
+
+      - run:
+          name: Set up environment and certificates
+          command: |
+            set -x
+            export PATH=${HOME}/.daml/bin:$HOME/.nvm/versions/node/v14.7.0/bin:${PATH}
+
+            mkdir dist
+            mkdir logs
+
+      - setup_remote_docker:
+          version: 18.06.0-ce
+
+      - run:
+          name: Start containers
+          command: |
+            set -x
+            #echo "$(pwd)"
+            #tar cvf - . | ssh remote-docker tar xf -
+            #ssh remote-docker sh -c 'echo "$(pwd)"; echo "$(id -u):$(id -g)"; chmod -R ugo+rwx *; chown -R "$(id -u):$(id -g)" *; ls -lan'
+            set +e
+            docker volume create configs
+            docker create -v configs:/configs --name=tester alpine:3.4 /bin/true
+            docker cp /home/circleci/ex-secure-daml-infra tester:/configs
+            docker ps -a
+            docker volume ls
+            docker-compose --env-file=docker-compose.env up -d
+            docker ps -a
+            set -e
+            docker inspect ex-secure-daml-infra_daml-testnode_1
+
+      - run:
+          name: Tests
+          command: |
+            set -x
+            #exec < /dev/tty
+            #sleep 15
+            #echo "$(pwd)"
+            #ls -la
+            #ssh remote-docker sh -c "./run-docker-tests.sh"
+            docker-compose exec daml-testnode sh -c 'ls -lan; echo \"$(pwd)\"; whoami '
+            docker-compose exec daml-testnode sh -c 'echo "$(pwd)"; cd /home/circleci/ex-secure-daml-infra; echo "$(id -u):$(id -g)"; whoami; touch test.txt; ls -lan; mkdir logs; ./test-all.sh > logs/test-all.log'
+            scp remote-desk:~/logs ./logs
+
+      - run:
+          name: Shutdown environment
+          command: |
+            docker-compose logs --no-color --tail=100000 daml-testnode > logs/testnode-logs.txt
+
+            docker-compose --env-file=docker-compose.env down
+          when: always
+
+      - store_artifacts:
+          path: logs
+          destination: raw-test-output/logs
+
+      - store_artifacts:
+          path: certs
+          destination: raw-test-output/certs
+
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - ledger_test:
+          daml_sdk_version: "1.5.0-snapshot.20200811.4959.0.bbc2fe56"

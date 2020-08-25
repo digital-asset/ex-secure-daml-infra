@@ -1,0 +1,35 @@
+-- Copyright (c) 2018-2020, Digital Asset (Switzerland) GmbH and/or its affiliates.
+-- All rights reserved.
+
+module TestScript where
+
+import Daml.Script
+import Main
+
+data LedgerParties = LedgerParties with
+  alice : Party
+  bob : Party
+  george : Party
+
+test : LedgerParties -> Script ()
+test parties = do
+
+  aliceCamera <- submit parties.alice do
+    createCmd Asset with
+      issuer = parties.alice
+      owner = parties.alice
+      name = "Camera"
+
+  aliceUmbrella <- submit parties.alice do
+    createCmd Asset with
+      issuer = parties.alice
+      owner = parties.alice
+      name = "Umbrella"
+
+  georgeCamera <- submit parties.alice do
+    exerciseCmd aliceCamera Give with newOwner = parties.george
+
+  submit parties.alice do
+    exerciseCmd aliceUmbrella Give with newOwner = parties.bob
+
+  pure ()

@@ -1,0 +1,9 @@
+{
+    "default_participant": {"host": "localhost", "port": 6865, "access_token": "default_jwt"},
+    "participants": {
+        "one": {"host": "server.acme.com", "port": 6865, "access_token": "certs/jwt/alice.token"},
+        "two": {"host": "server.acme.com", "port": 6865, "access_token": "certs/jwt/bob.token"}
+        "three": {"host": "server.acme.com", "port": 6865, "access_token": "certs/jwt/george.token"}
+    },
+    "party_participants": {"alice": "one", "bob": "two", "george": "three"}
+}

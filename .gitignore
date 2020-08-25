@@ -1,0 +1,11 @@
+.daml
+.idea
+dist
+sandbox.log
+certs
+ui/build/*
+ui/node_modules/*
+nginx-conf/nginx.conf
+navigator.log
+ex-secure-daml-infra.iml
+script-output.txt

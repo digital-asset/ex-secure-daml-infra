@@ -1,0 +1,60 @@
+-- Copyright (c) 2018-2020, Digital Asset (Switzerland) GmbH and/or its affiliates.
+-- All rights reserved.
+
+module Main where
+
+type AssetId = ContractId Asset
+type ConfigId = ContractId DonorConfig
+type AssetKey = (Party, Text)
+
+template Asset
+  with
+    issuer : Party
+    owner  : Party
+    name   : Text
+  where
+    ensure name /= ""
+    signatory issuer
+
+    key (issuer, name) : AssetKey
+    maintainer key._1
+
+    controller owner can
+      Give : AssetId
+        with
+          newOwner : Party
+        do
+          create this with
+            owner = newOwner
+
+
+template DonorConfig
+  with 
+    owner: Party
+    donateTo: Party
+  where
+    signatory owner
+
+    key owner : Party
+    maintainer key
+
+setup = scenario do
+  alice <- getParty "Alice"
+  bob <- getParty "Bob"
+
+  bobConfig <- submit bob do
+    create DonorConfig with
+       owner = bob
+       donateTo = alice
+
+  aliceTV <- submit alice do
+    create Asset with
+      issuer = alice
+      owner = alice
+      name = "TV"
+
+  bobTV <- submit alice do
+    exercise aliceTV Give with newOwner = bob
+
+  submit bob do
+    exercise bobTV Give with newOwner = alice

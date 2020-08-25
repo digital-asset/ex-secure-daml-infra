@@ -1,0 +1,43 @@
+{
+    "alice123456": {
+        "secret": "ComplexPassphrase!",
+        "parties": ["Alice"],
+        "application_id": "ex-secure-daml-infra",
+        "admin": "False",
+        "azp": "alice"
+    },
+    "bob123456": { 
+        "secret": "ComplexPassphrase!",
+        "parties": ["Bob"],
+        "application_id": "ex-secure-daml-infra",
+        "admin": "False",
+        "azp": "bob"
+    },
+    "george123456": { 
+        "secret": "ComplexPassphrase!",
+        "parties": ["George"],
+        "application_id": "ex-secure-daml-infra",
+        "admin": "False",
+        "azp": "george"
+    },
+    "m2m123456": { 
+        "secret": "ComplexPassphrase!",
+        "parties": ["Alice", "Bob", "George"],
+        "application_id": "ex-secure-daml-infra",
+        "admin": "True",
+        "azp": "alice"
+    },
+    "json123456": { 
+        "secret": "ComplexPassphrase!",
+        "parties": [],
+        "application_id": "HTTP-JSON-API-Gateway",
+        "admin": "False",
+        "azp": "json"
+    },
+    "navigator123456": { 
+        "secret": "ComplexPassphrase!",
+        "parties": ["Alice", "Bob", "George"],
+        "admin": "True",
+        "azp": "navigator"
+    }
+}

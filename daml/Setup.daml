@@ -1,0 +1,37 @@
+-- Copyright (c) 2018-2020, Digital Asset (Switzerland) GmbH and/or its affiliates.
+-- All rights reserved.
+
+module Setup where
+
+import Daml.Script
+import Main
+
+initialize : Script ()
+initialize = do
+  alice <- allocatePartyWithHint "Alice" (PartyIdHint "Alice")
+  bob <- allocatePartyWithHint "Bob" (PartyIdHint "Bob")
+  george <- allocatePartyWithHint "George" (PartyIdHint "George")
+
+  bobConfig <- submit bob do
+    createCmd DonorConfig with
+       owner = bob
+       donateTo = alice
+
+  georgeConfig <- submit george do
+    createCmd DonorConfig with
+       owner = george
+       donateTo = bob
+
+  aliceTV <- submit alice do
+    createCmd Asset with
+      issuer = alice
+      owner = alice
+      name = "TV"
+
+  bobTV <- submit alice do
+    exerciseCmd aliceTV Give with newOwner = bob
+
+  submit bob do
+    exerciseCmd bobTV Give with newOwner = alice
+
+  pure ()

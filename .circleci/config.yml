@@ -1,0 +1,135 @@
+#
+# Copyright (c) 2019, Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+# SPDX-License-Identifier: Apache-2.0
+#
+
+version: 2.1
+
+commands:
+  install_sdk:
+    description: "Install the DAML SDK"
+    parameters:
+      version:
+        type: string
+    steps:
+      - run:
+          command: |
+            export TERM=xterm-256color
+            curl -sSL https://get.daml.com/ | sh /dev/stdin << parameters.version >>
+
+jobs:
+  ledger_test:
+    parameters:
+      daml_sdk_version:
+        type: string
+    docker:
+      - image: circleci/buildpack-deps:latest
+    working_directory: /home/circleci/ex-secure-daml-infra
+
+    environment:
+      TEST_RESULTS: /tmp/test-results
+
+    steps:
+      - checkout
+
+      - run:
+          name: Install Node and Yarn
+          command: |
+
+            set -e
+
+            export NPM_CONFIG_LOGLEVEL="info"
+            export NODE_VERSION="14.7.0"
+            export YARN_VERSION="1.22.4"
+            curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.5/install.sh | bash
+            export NVM_DIR="$HOME/.nvm"
+            . "$NVM_DIR/nvm.sh"
+            nvm install $NODE_VERSION
+            nvm alias default $NODE_VERSION
+
+      - run:
+          name: Install Python
+          command: |
+            sudo apt update -q
+            sudo apt-get install -q -y python3-pip
+            sudo pip3 install jwcrypto
+
+      - install_sdk:
+          version: << parameters.daml_sdk_version >>
+
+      - run:
+          name: Set up environment and certificates
+          command: |
+            set -x
+            export PATH=${HOME}/.daml/bin:$HOME/.nvm/versions/node/v14.7.0/bin:${PATH}
+
+            cp env.sh-cicd-template env.sh
+            cp docker-compose.env-cicd-template docker-compose.env
+
+            mkdir dist
+            mkdir logs
+
+            ./build.sh
+            ./make-certs.sh
+            ./make-jwt.sh
+
+      - setup_remote_docker:
+          version: 19.03.12
+
+      - run:
+          name: Start containers
+          command: |
+            set -x
+            docker build -t authnode:latest -f ./Dockerfile.authnode .
+
+            docker volume create data
+            docker run -d -i -t -v data:/data --name=data-uploader alpine:latest sh
+            echo "Copy data to Docker volume..."
+            docker cp . data-uploader:/data
+            echo "Fixing permissions..."
+            docker exec -it data-uploader sh -c "cd data; ./fix-permissions.sh"
+            docker stop data-uploader
+            docker-compose --env-file=docker-compose.env up -d
+
+      - run:
+          name: Tests
+          command: |
+            set -x
+            exec < /dev/tty
+            docker-compose exec daml-testnode sh -c "cd /data; ./test-all.sh > logs/test-all.log"
+            docker cp data-uploader:/data/logs .
+
+      - run:
+          name: Shutdown environment
+          command: |
+            docker-compose logs --no-color --tail=100000 daml-ledger > logs/ledger-logs.txt
+            docker-compose logs --no-color --tail=100000 daml-init > logs/init-logs.txt
+            docker-compose logs --no-color --tail=100000 daml-frontend > logs/frontend-logs.txt
+            docker-compose logs --no-color --tail=100000 daml-nginx > logs/nginx-logs.txt
+            docker-compose logs --no-color --tail=100000 daml-envoyproxy > logs/envoyproxy-logs.txt
+            docker-compose logs --no-color --tail=100000 daml-jsonapi > logs/jsonapi-logs.txt
+            docker-compose logs --no-color --tail=100000 daml-navigator > logs/navigator-logs.txt
+            docker-compose logs --no-color --tail=100000 daml-trigger > logs/trigger-logs.txt
+            docker-compose logs --no-color --tail=100000 daml-postgres > logs/postgres-logs.txt
+            docker-compose logs --no-color --tail=100000 daml-testnode > logs/testnode-logs.txt
+            docker-compose logs --no-color --tail=100000 daml-authnode > logs/authnode-logs.txt
+
+            docker-compose --env-file=docker-compose.env down
+            docker stop data-uploader
+            docker rm data-uploader
+          when: always
+
+      - store_artifacts:
+          path: logs
+          destination: raw-test-output/logs
+
+      - store_artifacts:
+          path: certs
+          destination: raw-test-output/certs
+
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - ledger_test:
+          daml_sdk_version: "1.5.0-snapshot.20200811.4959.0.bbc2fe56"

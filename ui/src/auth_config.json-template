@@ -1,0 +1,5 @@
+{
+  "domain": "<AUTH0_DOMAIN>.auth0.com",
+  "clientId": "<AUTH0_CLIENT_ID>",
+  "audience": "https://daml.com/ledger-api"
+}

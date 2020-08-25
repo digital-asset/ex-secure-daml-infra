@@ -1,0 +1,16 @@
+version: '3.8'
+services:
+  daml-testnode:
+    image: alpine:latest
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t
+    command: sh
+    volumes:
+      - configs:/home/circleci:rw
+      #- /home/circleci/ex-secure-daml-infra/logs:/home/circleci/ex-secure-daml-infra/logs:rw
+
+
+
+volumes:
+  configs:
+    external: true

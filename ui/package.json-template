@@ -1,0 +1,47 @@
+{
+  "name": "auth0-react-01-login",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": "BROWSER=NONE SKIP_PREFLIGHT_CHECK=true react-scripts start",
+    "build": "SKIP_PREFLIGHT_CHECK=true react-scripts build",
+    "test": "SKIP_PREFLIGHT_CHECK=true react-scripts test",
+    "eject": "SKIP_PREFLIGHT_CHECK=true react-scripts eject"
+  },
+  "proxy": "https://<PROXY_HOST>:8000",
+  "dependencies": {
+    "@auth0/auth0-spa-js": "^1.10.0",
+    "@fortawesome/fontawesome-svg-core": "^1.2.29",
+    "@fortawesome/free-solid-svg-icons": "^5.13.1",
+    "@fortawesome/react-fontawesome": "^0.1.11",
+    "express": "^4.16.4",
+    "highlight.js": "^10.1.1",
+    "morgan": "^1.10.0",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
+    "react-router-dom": "^5.2.0",
+    "react-scripts": "3.4.1",
+    "reactstrap": "^8.4.1"
+  },
+  "devDependencies": {},
+  "resolutions": {
+    "webpack": "4.43.0",
+    "webpack-dev-server": "3.11.0",
+    "chokidar": "^3.4.0"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
