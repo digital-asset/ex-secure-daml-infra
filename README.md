@@ -33,5 +33,3 @@ Copyright (c) 2020 Digital Asset (Switzerland) GmbH and/or its affiliates. All r
 SPDX-License-Identifier: Apache-2.0
 
 
-
-
