@@ -38,4 +38,6 @@ cd ui
 npm install
 npm run build
 
-
+if [! -d logs ] ; then
+  mkdir logs
+fi

@@ -36,7 +36,7 @@ RESULT=`curl -s --cacert ./certs/intermediate/certs/ca-chain.cert.pem $CURL_CERT
 echo $RESULT | jq .
 
 daml script --dar ./dist/ex-secure-daml-infra-0.0.1.dar \
-  --script-name Setup:initialize \
+  --script-name Main:setup \
   --ledger-host ledger.acme.com --ledger-port 6865 \
   --access-token-file=./certs/jwt/m2m.token \
   --application-id "ex-secure-daml-infra" \
