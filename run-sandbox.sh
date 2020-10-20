@@ -37,17 +37,6 @@ sleep 5
 # --auth-jwt-rs256-jwks=<url>
 # --auth-jwt-hs256-unsafe=<secret>
 
-#daml sandbox \
-# ./dist/ex-secure-daml-infra-0.0.1.dar \
-# --client-auth $CLIENT_CERT_AUTH_PARAM \
-# --sql-backend-jdbcurl "jdbc:postgresql://localhost/postgres?user=postgres&password=ChangeDefaultPassword!&ssl=on" \
-# $SIGNER_URL \
-# --log-level DEBUG \
-# --ledgerid $LEDGER_ID \
-# --cacrt "$(pwd)/certs/intermediate/certs/ca-chain.cert.pem" \
-# --pem "$(pwd)/certs/server/private/ledger.$DOMAIN.key.pem" \
-# --crt "$(pwd)/certs/server/certs/ledger-chain.$DOMAIN.cert.pem"
-
 if [ ! -f daml-on-sql-1.5.0.jar ]; then
    wget https://github.com/digital-asset/daml/releases/download/v1.5.0/daml-on-sql-1.5.0.jar
 fi
