@@ -131,4 +131,4 @@ workflows:
   build_and_test:
     jobs:
       - ledger_test:
-          daml_sdk_version: "1.5.0-snapshot.20200811.4959.0.bbc2fe56"
+          daml_sdk_version: "1.5.0"

@@ -83,7 +83,7 @@ services:
 
   daml-init:
     image: $DOCKER_IMAGE
-    command: bash -c "while !</dev/tcp/ledger.$DOMAIN/6865; do sleep 5; done; ~/.daml/bin/daml script --dar /data/dist/ex-secure-daml-infra-0.0.1.dar --script-name Setup:initialize --ledger-host ledger.$DOMAIN --ledger-port 6865 --access-token-file=/data/certs/jwt/m2m.token --application-id ex-secure-daml-infra --tls $CLIENT_CERT_PARAM --cacrt /data/certs/intermediate/certs/ca-chain.cert.pem"
+    command: bash -c "while !</dev/tcp/ledger.$DOMAIN/6865; do sleep 5; done; ~/.daml/bin/daml script --dar /data/dist/ex-secure-daml-infra-0.0.1.dar --script-name Main:setup --ledger-host ledger.$DOMAIN --ledger-port 6865 --access-token-file=/data/certs/jwt/m2m.token --application-id ex-secure-daml-infra --tls $CLIENT_CERT_PARAM --cacrt /data/certs/intermediate/certs/ca-chain.cert.pem"
     volumes:
       - data:/data:rw
     depends_on:
