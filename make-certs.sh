@@ -165,6 +165,7 @@ create_ledger() {
   openssl verify -CAfile $ROOTDIR/certs/intermediate/certs/ca-chain.cert.pem \
       $ROOTDIR/certs/server/certs/ledger.$DOMAIN.cert.pem
 
+  cat $ROOTDIR/certs/server/certs/ledger.$DOMAIN.cert.pem $ROOTDIR/certs/intermediate/certs/ca-chain.cert.pem > $ROOTDIR/certs/server/certs/ledger-chain.$DOMAIN.cert.pem
 }
 
 create_web() {
@@ -226,6 +227,7 @@ create_envoy() {
   openssl verify -CAfile $ROOTDIR/certs/intermediate/certs/ca-chain.cert.pem \
       $ROOTDIR/certs/server/certs/envoy.$DOMAIN.cert.pem
 
+  cat $ROOTDIR/certs/server/certs/envoy.$DOMAIN.cert.pem $ROOTDIR/certs/intermediate/certs/ca-chain.cert.pem > $ROOTDIR/certs/server/certs/envoy-chain.$DOMAIN.cert.pem
 }
 
 create_db() {

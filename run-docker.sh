@@ -26,11 +26,10 @@ docker run --name daml-postgres -d -p 5432:5432 -e POSTGRES_PASSWORD="ChangeDefa
 docker stop daml-nginx
 docker rm daml-nginx
 
-
-
 docker run --name daml-nginx -p 8000:8000 -p 443:443 -p 8443:8443 \
   -v "$(pwd)/nginx-conf:/etc/nginx:ro" \
-  -v "$(pwd)/certs/server/certs/web.$DOMAIN.cert.pem:/etc/ssl/server.crt:ro" \
+  -v "$(pwd)/ui/build:/data/ui/build:ro" \
+  -v "$(pwd)/certs/server/certs/web-chain.$DOMAIN.cert.pem:/etc/ssl/server.crt:ro" \
   -v "$(pwd)/certs/server/private/web.$DOMAIN.key.pem:/etc/ssl/server.key:ro" \
   -v "$(pwd)/certs/intermediate/certs/ca-chain.cert.pem:/etc/ssl/certs/ca-chain.crt:ro" \
   -P -d nginx
@@ -44,7 +43,7 @@ docker run --name daml-envoyproxy -p 10000:10000 -d \
   -v "$(pwd)/certs/intermediate/certs/ca-chain.cert.pem:/etc/ssl/certs/ca-chain.crt:ro" \
   -v "$(pwd)/certs/client/client1.$DOMAIN.cert.pem:/etc/ssl/client.crt:ro" \
   -v "$(pwd)/certs/client/client1.$DOMAIN.key.pem:/etc/ssl/client.key:ro" \
-  -v "$(pwd)/certs/server/certs/envoy.$DOMAIN.cert.pem:/etc/ssl/server.crt:ro" \
+  -v "$(pwd)/certs/server/certs/envoy-chain.$DOMAIN.cert.pem:/etc/ssl/server.crt:ro" \
   -v "$(pwd)/certs/server/private/envoy.$DOMAIN.key.pem:/etc/ssl/server.key:ro" \
   envoyproxy/envoy-alpine:v1.15-latest \
   -c "/etc/edge.yaml" \

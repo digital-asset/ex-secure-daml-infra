@@ -16,14 +16,25 @@ fi
 
 ./get-json-api-token.sh
 
-daml json-api --ledger-host ledger.$DOMAIN \
+#daml json-api --ledger-host ledger.$DOMAIN \
+#  --ledger-port 6865 --address 127.0.0.1 \
+#  --http-port 7575 --max-inbound-message-size 4194304 \
+#  --package-reload-interval 5s \
+#  --application-id HTTP-JSON-API-Gateway \
+#  --query-store-jdbc-config "driver=org.postgresql.Driver,url=jdbc:postgresql://db.$DOMAIN:5432/postgres?&ssl=true,user=postgres,password=ChangeDefaultPassword!,createSchema=false" \
+#  --cacrt ./certs/intermediate/certs/ca-chain.cert.pem $CLIENT_CERT_PARAM \
+#  --tls \
+#  --access-token-file=certs/jwt/json.token
+
+if [ ! -f http-json-1.5.0.jar ]; then
+   wget -q https://github.com/digital-asset/daml/releases/download/v1.5.0/http-json-1.5.0.jar
+fi
+
+java -jar http-json-1.5.0.jar --ledger-host ledger.$DOMAIN \
   --ledger-port 6865 --address 127.0.0.1 \
   --http-port 7575 --max-inbound-message-size 4194304 \
   --package-reload-interval 5s \
-  --application-id HTTP-JSON-API-Gateway \
   --query-store-jdbc-config "driver=org.postgresql.Driver,url=jdbc:postgresql://db.$DOMAIN:5432/postgres?&ssl=true,user=postgres,password=ChangeDefaultPassword!,createSchema=false" \
   --cacrt ./certs/intermediate/certs/ca-chain.cert.pem $CLIENT_CERT_PARAM \
   --tls \
   --access-token-file=certs/jwt/json.token
-
-

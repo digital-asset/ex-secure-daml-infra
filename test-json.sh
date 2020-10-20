@@ -21,12 +21,6 @@ fi
 
 AUTH_TOKEN=`cat "certs/jwt/m2m.token"`
 
-curl -v --cacert ./certs/intermediate/certs/ca-chain.cert.pem $CURL_CERT_PARAM \
-  -X GET -H 'Content-Type: application/json' \
-  -H "Authorization: Bearer $AUTH_TOKEN" \
-  https://web.$DOMAIN:8000/v1/parties
-
-
 echo ""
 echo "Getting all current parties"
 RESULT=`curl -s --cacert ./certs/intermediate/certs/ca-chain.cert.pem $CURL_CERT_PARAM \
@@ -79,7 +73,8 @@ echo $RESULT | jq .
 # Create a new contract via JSON API
 echo ""
 echo "Creating new contract"
-RESULT=`curl -s --cacert ./certs/intermediate/certs/ca-chain.cert.pem $CURL_CERT_PARAM -X POST -H 'Content-Type: application/json' -H "Authorization: Bearer $AUTH_TOKEN" -d "{ \"templateId\": \"Main:Asset\", \"payload\": {\"owner\": \"$PARTY_ID\",\"name\": \"TV\", \"issuer\": \"$PARTY_ID\"}}" https://web.$DOMAIN:8000/v1/create`
+RANDOM_STRING=`openssl rand -hex 16`
+RESULT=`curl -s --cacert ./certs/intermediate/certs/ca-chain.cert.pem $CURL_CERT_PARAM -X POST -H 'Content-Type: application/json' -H "Authorization: Bearer $AUTH_TOKEN" -d "{ \"templateId\": \"Main:Asset\", \"payload\": {\"owner\": \"$PARTY_ID\",\"name\": \"TV-$RANDOM_STRING\", \"issuer\": \"$PARTY_ID\"}}" https://web.$DOMAIN:8000/v1/create`
 
 echo $RESULT | jq .
 

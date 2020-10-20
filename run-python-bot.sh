@@ -30,6 +30,6 @@ else
    --ca-file "./certs/intermediate/certs/ca-chain.cert.pem" \
    --oauth-client-id $GEORGE_CLIENT_ID \
    --oauth-client-secret $GEORGE_CLIENT_SECRET \
-   --oauth-token-uri "https://digitalasset-dev.auth0.com/oauth/token"
-   --oauth-audience="https://daml.com/ledger-api"
+   --oauth-token-uri "https://digitalasset-dev.auth0.com/oauth/token" \
+   --oauth-audience "https://daml.com/ledger-api"
 fi

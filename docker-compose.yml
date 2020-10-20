@@ -33,7 +33,6 @@ services:
       - data:/data:rw
     depends_on:
       - daml-jsonapi
-      - daml-frontend
     networks:
       default:
         aliases:
@@ -81,22 +80,6 @@ services:
       default:
         aliases:
           - jsonapi.$DOMAIN
-
-  daml-frontend:
-    image: "node:14.7.0-alpine3.12"
-    volumes:
-      - data:/data:rw
-    ports:
-      - "3000:3000"
-    working_dir: /data/ui
-    command: "npm start"
-    stdin_open: true
-    depends_on:
-      - daml-init
-    networks:
-      default:
-        aliases:
-          - frontend.$DOMAIN
 
   daml-init:
     image: $DOCKER_IMAGE
