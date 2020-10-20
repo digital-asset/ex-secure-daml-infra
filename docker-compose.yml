@@ -33,7 +33,6 @@ services:
       - data:/data:rw
     depends_on:
       - daml-jsonapi
-      - daml-frontend
     networks:
       default:
         aliases:
@@ -82,25 +81,9 @@ services:
         aliases:
           - jsonapi.$DOMAIN
 
-  daml-frontend:
-    image: "node:14.7.0-alpine3.12"
-    volumes:
-      - data:/data:rw
-    ports:
-      - "3000:3000"
-    working_dir: /data/ui
-    command: "npm start"
-    stdin_open: true
-    depends_on:
-      - daml-init
-    networks:
-      default:
-        aliases:
-          - frontend.$DOMAIN
-
   daml-init:
     image: $DOCKER_IMAGE
-    command: bash -c "while !</dev/tcp/ledger.$DOMAIN/6865; do sleep 5; done; ~/.daml/bin/daml script --dar /data/dist/ex-secure-daml-infra-0.0.1.dar --script-name Setup:initialize --ledger-host ledger.$DOMAIN --ledger-port 6865 --access-token-file=/data/certs/jwt/m2m.token --application-id ex-secure-daml-infra --tls $CLIENT_CERT_PARAM --cacrt /data/certs/intermediate/certs/ca-chain.cert.pem"
+    command: bash -c "while !</dev/tcp/ledger.$DOMAIN/6865; do sleep 5; done; ~/.daml/bin/daml script --dar /data/dist/ex-secure-daml-infra-0.0.1.dar --script-name Main:setup --ledger-host ledger.$DOMAIN --ledger-port 6865 --access-token-file=/data/certs/jwt/m2m.token --application-id ex-secure-daml-infra --tls $CLIENT_CERT_PARAM --cacrt /data/certs/intermediate/certs/ca-chain.cert.pem"
     volumes:
       - data:/data:rw
     depends_on:

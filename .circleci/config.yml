@@ -104,7 +104,6 @@ jobs:
           command: |
             docker-compose logs --no-color --tail=100000 daml-ledger > logs/ledger-logs.txt
             docker-compose logs --no-color --tail=100000 daml-init > logs/init-logs.txt
-            docker-compose logs --no-color --tail=100000 daml-frontend > logs/frontend-logs.txt
             docker-compose logs --no-color --tail=100000 daml-nginx > logs/nginx-logs.txt
             docker-compose logs --no-color --tail=100000 daml-envoyproxy > logs/envoyproxy-logs.txt
             docker-compose logs --no-color --tail=100000 daml-jsonapi > logs/jsonapi-logs.txt
@@ -132,4 +131,4 @@ workflows:
   build_and_test:
     jobs:
       - ledger_test:
-          daml_sdk_version: "1.5.0-snapshot.20200811.4959.0.bbc2fe56"
+          daml_sdk_version: "1.5.0"

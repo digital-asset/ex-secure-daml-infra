@@ -21,3 +21,4 @@ rm ui/package.json
 rm -rf ui/node_modules
 rm navigator.log
 rm script-output.txt
+rm *.jar
