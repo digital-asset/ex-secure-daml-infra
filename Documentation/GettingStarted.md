@@ -7,16 +7,16 @@
 
 ## Tested Configuration
 The following configuration was used to create this reference sample:
-- Apple laptop with MacOS Catalina 10.15.6
+- Apple laptop with MacOS Catalina 10.15 or Big Sur 11.0 or later
   - IMPORTANT NOTE: This has been tested on Apple MacOS Catalina with OpenSSL 1.1.0. 
   The provided scripts will not work with the default LibreSSL 1.0 supplied by Apple or earlier version of OpenSSL.
-- Docker Desktop for Mac 2.3.0.4 (Engine 19.03.12) 
-- Docker Compose 1.26.2
+- Docker Desktop for Mac 3.1.0(51484) (Engine 20.10.02) 
+- Docker Compose 1.27.4
 - PostGres 12 on Docker
 - NGINX 1.19.1 on Docker
 - Envoy Proxy 1.15 on Docker
-- DAML 1.5.0 Snapshot
-- Python 3.8.5
+- DAML 1.10.0
+- Python 3.9.1
 
 ## Prerequisites
 
