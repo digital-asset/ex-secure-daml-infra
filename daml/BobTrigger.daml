@@ -3,24 +3,24 @@
 
 module BobTrigger where
 
--- import DA.Action
 import DA.Foldable
-import DA.Next.Map (Map)
 import Daml.Trigger
 import Main
 
-rejectTrigger : Trigger () = Trigger with
-  initialize = \_ -> ()
-  updateState = \_ _ () -> ()
-  rule = rejectRule
-  registeredTemplates = AllInDar
-  heartbeat = None
+rejectTrigger : Trigger ()
+rejectTrigger = Trigger
+  { initialize = pure ()
+  , updateState = \_message -> pure ()
+  , rule = rejectRule
+  , registeredTemplates = AllInDar
+  , heartbeat = None
+  }
 
-rejectRule : Party -> ACS -> Time -> Map CommandId [Command] -> () -> TriggerA ()
-rejectRule p acs _ _ _ = do
-  let assets = getContracts @Asset acs
+rejectRule : Party -> TriggerA () ()
+rejectRule p = do
+  assets : [(ContractId Asset, Asset)] <- query @Asset
   let bobAssets = filter (\(_,a) -> a.owner == p) assets
-  let configs = getContracts @DonorConfig acs
+  configs : [(ContractId DonorConfig, DonorConfig)] <- query @DonorConfig
   let Some (_,bobConfig) = find (\(_,c) -> c.owner == p) configs
 
   forA_ bobAssets $ \(_cid, c) -> do

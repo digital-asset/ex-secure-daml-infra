@@ -6,6 +6,7 @@ import time
 import dazl
 import dazl.client.config
 import sys
+import asyncio
 
 from dazl.model.reading import ReadyEvent, ContractCreateEvent
 
@@ -20,34 +21,39 @@ def send(party, cid, choice_name, newOwner, name):
 def init(network: dazl.Network, owner):
   sender_client = network.aio_party(owner)
 
-  @sender_client.ledger_ready()
-  async def init(event: ReadyEvent):
-    assets = event.acs_find_active('Main.DonorConfig', match=lambda cdata: cdata['owner'] == owner)
-    if len(assets) == 0:
-      logging.info("Initializing DonorConfig for " + owner)
-      return dazl.create('Main.DonorConfig', {'owner': owner, 'donateTo': 'Alice'})
-
 def register_handler(network: dazl.Network, party):
   party_client = network.aio_party(party)
+
+
 
   @party_client.ledger_ready()
   async def init(event: ReadyEvent):
     cmds = []
 
+    # fix oddity where contracts not showing initially
+    await asyncio.sleep(5)
+
     donateTo = None
-    donor_config = event.acs_find_active('Main.DonorConfig', match=lambda cdata: cdata['owner'] == party)
+    assets = event.acs_find_active('Main:DonorConfig', match=lambda cdata: cdata['owner'] == party)
+    if len(assets) == 0:
+      logging.info("Initializing DonorConfig for " + party)
+      #return dazl.create('Main:DonorConfig', {'owner': party, 'donateTo': 'Alice'})
+      await party_client.submit_create('Main:DonorConfig', {'owner': party, 'donateTo': 'Alice'});
+      donateTo = 'Alice'
+
+    donor_config = event.acs_find_active('Main:DonorConfig', match=lambda cdata: cdata['owner'] == party)
     for donorCid, donorData in donor_config.items():
       donateTo = donorData['donateTo']
     logging.info("Party: {} is configured to donate to: {}".format(party, donateTo))
 
-    assets = event.acs_find_active('Main.Asset', match=lambda cdata: cdata['owner'] == party)
+    assets = event.acs_find_active('Main:Asset', match=lambda cdata: cdata['owner'] == party)
     for assetCid, assetData in assets.items():
       if party != donateTo:
         cmds.append(send(party, assetCid, 'Give', donateTo, assetData['name']))
 
     return cmds
 
-  @party_client.ledger_created('Main.Asset')
+  @party_client.ledger_created('Main:Asset')
   async def ping(event: ContractCreateEvent):
     cmds = []
 
@@ -57,13 +63,13 @@ def register_handler(network: dazl.Network, party):
       #return send(party, event.cid, 'RespondPong', event.cdata['count'])
 
     donateTo = None
-    donor_config = event.acs_find_active('Main.DonorConfig', match=lambda cdata: cdata['owner'] == party)
+    donor_config = event.acs_find_active('Main:DonorConfig', match=lambda cdata: cdata['owner'] == party)
     for donorCid, donorData in donor_config.items():
       donateTo = donorData['donateTo']
 
     logging.info("Party: {} is configured to donate to: {}".format(party, donateTo))
 
-    assets = event.acs_find_active('Main.Asset', match=lambda cdata: cdata['owner'] == party)
+    assets = event.acs_find_active('Main:Asset', match=lambda cdata: cdata['owner'] == party)
     for assetCid, assetData in assets.items():
       if party != donateTo:
         cmds.append(send(party, assetCid, 'Give', donateTo, assetData['name']))

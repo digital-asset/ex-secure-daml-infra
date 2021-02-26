@@ -22,3 +22,7 @@ rm -rf ui/node_modules
 rm navigator.log
 rm script-output.txt
 rm *.jar
+rm client-app/client.jar
+rm -rf client-app/target
+rm -rf client-app/project/project
+rm -rf client-app/project/target

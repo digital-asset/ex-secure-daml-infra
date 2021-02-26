@@ -1,8 +1,9 @@
-FROM python:3.8.5-alpine3.12
+FROM python:3.9.2-alpine3.13
 
 RUN apk add gcc musl-dev python3-dev libffi-dev openssl-dev linux-headers make g++ 
 RUN apk add py3-grpcio>1.29.1 py3-protobuf
 RUN apk upgrade
+RUN apk add rust cargo
 RUN pip3 install jwcrypto 
 RUN pip3 install dazl
 

@@ -9,3 +9,8 @@ nginx-conf/nginx.conf
 navigator.log
 ex-secure-daml-infra.iml
 script-output.txt
+client-app/client.jar
+client-app/project/project/
+client-app/project/target/
+client-app/target/
+env.sh-backup

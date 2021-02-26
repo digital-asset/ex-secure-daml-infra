@@ -9,87 +9,59 @@
 
 # OpenSSL testing of certs: https://www.feistyduck.com/library/openssl-cookbook/online/ch-testing-with-openssl.html
 
-create_CRL() {
-  # Create CRL for certificate
+create_test_client() {
+  echo "Creating Test Client certificate"
 
-  openssl ca -config $ROOTDIR/certs/intermediate/openssl.cnf \
-      -gencrl -out $ROOTDIR/certs/intermediate/crl/intermediate.crl.pem
-
-  # Check CRL
-  openssl crl -in $ROOTDIR/certs/intermediate/crl/intermediate.crl.pem -noout -text
-}
-
-create_ocsp_key() {
-  echo "Creating OCSP Server Key"
-
-  # Create OCSP 
-  openssl genrsa \
-      -out $ROOTDIR/certs/intermediate/private/ocsp.$DOMAIN.key.pem 4096
-
-  openssl req -config $ROOTDIR/certs/intermediate/openssl.cnf -new -sha256 \
-      -subj "/C=US/ST=New York/O=$DOMAIN_NAME/CN=ocsp.$DOMAIN" \
-      -key $ROOTDIR/certs/intermediate/private/ocsp.$DOMAIN.key.pem \
-      -out $ROOTDIR/certs/intermediate/csr/ocsp.$DOMAIN.csr.pem
-
-  openssl ca -batch -config $ROOTDIR/certs/intermediate/openssl.cnf \
-      -extensions ocsp -days 375 -notext -md sha256 \
-      -in $ROOTDIR/certs/intermediate/csr/ocsp.$DOMAIN.csr.pem \
-      -out $ROOTDIR/certs/intermediate/certs/ocsp.$DOMAIN.cert.pem
-
-  # Validate extensions
-  openssl x509 -noout -text \
-      -in $ROOTDIR/certs/intermediate/certs/ocsp.$DOMAIN.cert.pem
-}
-
-create_test() {
-  echo "Creating Test certificate"
-
-  openssl genrsa -out $ROOTDIR/certs/server/private/test.$DOMAIN.key.pem 2048
+  openssl genpkey -out $ROOTDIR/certs/client/testclient.$DOMAIN.key.pem -algorithm RSA -pkeyopt rsa_keygen_bits:2048
   openssl req -config $ROOTDIR/certs/intermediate/openssl.cnf \
-      -subj "/C=US/ST=New York/O=DOMAIN_NAME/CN=test.$DOMAIN" \
-      -key $ROOTDIR/certs/server//private/test.$DOMAIN.key.pem \
-      -new -sha256 -out $ROOTDIR/certs/server/csr/test.$DOMAIN.csr.pem
+      -subj "/C=US/ST=New York/O=DOMAIN_NAME/CN=testclient.$DOMAIN" \
+      -key $ROOTDIR/certs/client/testclient.$DOMAIN.key.pem \
+      -new -sha256 -out $ROOTDIR/certs/client/testclient.$DOMAIN.csr.pem
   openssl ca -batch -config $ROOTDIR/certs/intermediate/openssl.cnf \
-      -extensions server_cert -days 375 -notext -md sha256 \
-      -in $ROOTDIR/certs/server/csr/test.$DOMAIN.csr.pem \
-      -out $ROOTDIR/certs/server/certs/test.$DOMAIN.cert.pem
+      -extensions usr_cert -days 375 -notext -md sha256 \
+      -in $ROOTDIR/certs/client/testclient.$DOMAIN.csr.pem \
+      -out $ROOTDIR/certs/client/testclient.$DOMAIN.cert.pem
 
-  openssl x509 -noout -ocsp_uri -in "$ROOTDIR/certs/server/certs/test.$DOMAIN.cert.pem"
-}
-
-start_ocsp() {
-  echo "Starting OCSP responder"
-
-  cd $ROOTDIR 
-  sleep 2
-  netstat -an | grep ^tcp | grep 2560
-  which openssl 
-
-
-  # Note that this is set to only listen for one request and then terminate
-  openssl ocsp -port 2560 -text \
-    -index "$(pwd)/certs/intermediate/index.txt" \
-    -CA "$(pwd)/certs/intermediate/certs/ca-chain.cert.pem" \
-    -rkey "$(pwd)/certs/intermediate/private/ocsp.$DOMAIN.key.pem" \
-    -rsigner "$(pwd)/certs/intermediate/certs/ocsp.$DOMAIN.cert.pem" \
-    -nrequest 1 &
-
-  sleep 3
-
+  openssl x509 -noout -ocsp_uri -in "$ROOTDIR/certs/client/testclient.$DOMAIN.cert.pem"
 }
 
 check_ocsp_response() {
   echo "Check OCSP response"
   openssl ocsp -CAfile "$ROOTDIR/certs/intermediate/certs/ca-chain.cert.pem" \
-      -url http://127.0.0.1:2560 -resp_text \
+      -url http://ocsp.$DOMAIN:2560 -resp_text \
       -issuer "$ROOTDIR/certs/intermediate/certs/intermediate.cert.pem" \
-      -cert "$ROOTDIR/certs/server/certs/test.$DOMAIN.cert.pem"
+      -cert "$ROOTDIR/certs/client/testclient.$DOMAIN.cert.pem"
 }
 
 revoke_test() {
   echo "Revoking certificate"
   openssl ca -batch -config "$ROOTDIR/certs/intermediate/openssl.cnf" \
-      -revoke "$ROOTDIR/certs/server/certs/test.$DOMAIN.cert.pem"
+      -revoke "$ROOTDIR/certs/client/testclient.$DOMAIN.cert.pem" -crl_reason keyCompromise
+
+  # CRL Reasons include:
+  #  unspecified
+  #  keyCompromise
+  #  CACompromise
+  #  affiliationChanged
+  #  superseded
+  #  cessationOfOperation
+  #  certificateHold
+  #  removeFromCRL
+
+}
+
+build_client_app() {
+
+   cd $ROOTDIR/client-app
+   sbt assembly
+   cp target/scala-2.12/client.jar $JAR
+}
+
+run_client_app() {
+
+   cd $ROOTDIR/client-app
+   java -jar $JAR ledger.$DOMAIN 6865 $CLIENT_CERT $CLIENT_KEY $CA_CERT $AUTH_TOKEN
+
 }
 
 # On MacOS use brew installed openssl 1.1.1
@@ -100,17 +72,34 @@ source env.sh
 export ROOTDIR=$PWD
 cd $ROOTDIR
 
-if [ ! -d certs ] ; then
+CERTS_DIR="$ROOTDIR/certs"
+JAR="$ROOTDIR/client-app/client.jar"
+CLIENT_CERT="$CERTS_DIR/client/testclient.$DOMAIN.cert.pem"
+CLIENT_KEY="$CERTS_DIR/client/testclient.$DOMAIN.key.pem"
+CA_CERT="$CERTS_DIR/intermediate/certs/ca-chain.cert.pem"
+
+if [ ! -d "$CERTS_DIR" ] ; then
  echo "ERROR: You need to create PKI CA hierarchy first!"
  exit
 fi
 
-create_ocsp_key
-create_test
-start_ocsp
+if [ ! -f "$JAR" ] ; then
+  build_client_app
+fi
+
+AUTH_TOKEN=`cat "$ROOTDIR/certs/jwt/m2m.token"`
+#echo $AUTH_TOKEN
+
+create_test_client
+sleep 2
 check_ocsp_response
+check_ocsp_response
+run_client_app
+
 revoke_test
-start_ocsp
+sleep 2
 check_ocsp_response
+check_ocsp_response
+run_client_app
 
 
