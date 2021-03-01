@@ -4,6 +4,9 @@
 
 ROOTDIR=$PWD
 
+# Switch to openjdk 11
+export PATH="/usr/local/opt/openjdk@11/bin:$PATH"
+
 #The following options define whether to enable client certificate authentication. Please uncomment one
 #CLIENT_CERT_AUTH=FALSE
 CLIENT_CERT_AUTH=TRUE
@@ -12,10 +15,14 @@ CLIENT_CERT_AUTH=TRUE
 #LOCAL_JWT_SIGNING=FALSE
 LOCAL_JWT_SIGNING=TRUE
 
-DOCKER_COMPOSE=TRUE
-#DOCKER_COMPOSE=FALSE
+#DOCKER_COMPOSE=TRUE
+DOCKER_COMPOSE=FALSE
 
-DOCKER_IMAGE="digitalasset/daml-sdk:1.5.0"
+# OCSP Checking
+OCSP_CHECKING=""
+#OCSP_CHECKING="--cert-revocation-checking true"
+
+DOCKER_IMAGE="digitalasset/daml-sdk:1.10.0"
 
 # The Ledger ID is used to bootstrap the system with a known identity. This is a random UUID and should be unique to each ledger instance.
 #

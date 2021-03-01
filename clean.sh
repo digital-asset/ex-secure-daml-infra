@@ -8,6 +8,7 @@ docker stop daml-envoyproxy
 docker rm daml-postgres
 docker rm daml-nginx
 docker rm daml-envoyproxy
+killall -9 openssl
 
 rm dist/*
 rm -rf certs
@@ -26,3 +27,5 @@ rm client-app/client.jar
 rm -rf client-app/target
 rm -rf client-app/project/project
 rm -rf client-app/project/target
+rm socket/client/*.class
+rm socket/server/*.class

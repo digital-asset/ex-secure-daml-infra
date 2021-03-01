@@ -95,5 +95,5 @@ https://prefetch.net/blog/2020/04/22/using-grpcurl-to-interact-with-grpc-applica
 https://bionic.fullstory.com/tale-of-grpcurl/
 
 
-Copyright (c) 2020 Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+Copyright (c) 2021 Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
 SPDX-License-Identifier: Apache-2.0
