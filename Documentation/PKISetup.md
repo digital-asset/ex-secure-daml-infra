@@ -168,5 +168,5 @@ though many of these features are detailed in the provided scripts (```test-ocsp
 
 [Auth0 Setup](./Auth0Setup.md)
 
-Copyright (c) 2020 Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+Copyright (c) 2021 Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
 SPDX-License-Identifier: Apache-2.0

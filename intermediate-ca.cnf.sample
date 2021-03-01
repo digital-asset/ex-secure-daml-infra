@@ -114,7 +114,7 @@ subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid,issuer
 keyUsage = critical, nonRepudiation, digitalSignature, keyEncipherment
 extendedKeyUsage = clientAuth, emailProtection
-crlDistributionPoints = URI:http://crl.<DOMAIN>/intermediate.crl.pem
+#crlDistributionPoints = URI:http://crl.<DOMAIN>/intermediate.crl.pem
 authorityInfoAccess = OCSP;URI:http://ocsp.<DOMAIN>:2560
 
 [ server_cert ]
@@ -127,7 +127,7 @@ subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid,issuer:always
 keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = serverAuth
-crlDistributionPoints = URI:http://crl.<DOMAIN>/intermediate.crl.pem
+#crlDistributionPoints = URI:http://crl.<DOMAIN>/intermediate.crl.pem
 authorityInfoAccess = OCSP;URI:http://ocsp.<DOMAIN>:2560
 
 [ sign_cert ]
@@ -135,7 +135,7 @@ authorityInfoAccess = OCSP;URI:http://ocsp.<DOMAIN>:2560
 basicConstraints = CA:FALSE
 subjectKeyIdentifier = hash
 keyUsage = critical, digitalSignature
-crlDistributionPoints = URI:http://crl.<DOMAIN>/intermediate.crl.pem
+#crlDistributionPoints = URI:http://crl.<DOMAIN>/intermediate.crl.pem
 authorityInfoAccess = OCSP;URI:http://ocsp.<DOMAIN>:2560
 
 [ crl_ext ]

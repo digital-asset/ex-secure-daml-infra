@@ -60,7 +60,9 @@ build_client_app() {
 run_client_app() {
 
    cd $ROOTDIR/client-app
-   java -jar $JAR ledger.$DOMAIN 6865 $CLIENT_CERT $CLIENT_KEY $CA_CERT $AUTH_TOKEN
+   #java -Djavax.net.ssl.trustStore="$ROOTDIR/certs/intermediate/certs/local-truststore.jks" -Djavax.net.ssl.trustStorePassword=changeit -Djava.security.debug="certpath ocsp" -Djavax.net.debug="all" -Dcom.sun.net.ssl.checkRevocation=true -Docsp.enable=true -jar $JAR ledger.$DOMAIN 6865 $CLIENT_CERT $CLIENT_KEY $CA_CERT $AUTH_TOKEN
+   #java -Djava.security.debug="certpath ocsp" -Djavax.net.debug="all" -Dcom.sun.net.ssl.checkRevocation=true -Docsp.enable=true -jar $JAR ledger.$DOMAIN 6865 $CLIENT_CERT $CLIENT_KEY $CA_CERT $AUTH_TOKEN
+   java -Dcom.sun.security.enableCRLDP=true -Dcom.sun.net.ssl.checkRevocation=true -Docsp.enable=true -Djava.security.debug="certpath ocsp" -Djdk.tls.client.enableStatusRequestExtension=true -jar $JAR ledger.$DOMAIN 6865 $CLIENT_CERT $CLIENT_KEY $CA_CERT $AUTH_TOKEN
 
 }
 

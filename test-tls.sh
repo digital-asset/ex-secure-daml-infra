@@ -24,5 +24,5 @@ echo | openssl s_client -connect "web.$DOMAIN:443" -CAfile certs/intermediate/ce
 
 echo ""
 echo "Testing sandbox"
-echo | openssl s_client -connect "ledger.$DOMAIN:6865" -CAfile certs/intermediate/certs/ca-chain.cert.pem -tls1_2
+echo | openssl s_client -connect "ledger.$DOMAIN:6865" -servername "ledger.$DOMAIN" -CAfile certs/intermediate/certs/ca-chain.cert.pem -tls1_2 -tlsextdebug -status
 

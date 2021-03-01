@@ -25,7 +25,7 @@ Before you can run the application, you need to install:
 - the [yarn](https://yarnpkg.com/en/docs/install) package manager for JavaScript.
 - grpcurl - to test secure GRPC calls 
 - jq - for JSON parsing 
-- openssl 1.1.0 - for PKI, TLS 1.3 and any other aspects
+- openssl 1.1.1j - for PKI, TLS 1.3 and any other aspects
 - Docker - to run postgres and nginx proxy
 - Python - jwcrypto library
 
@@ -145,5 +145,5 @@ Docker-compose setup uses internal network aliases to allow connections between 
 
 [PKI Setup](./PKISetup.md)
 
-Copyright (c) 2020 Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+Copyright (c) 2021 Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
 SPDX-License-Identifier: Apache-2.0
