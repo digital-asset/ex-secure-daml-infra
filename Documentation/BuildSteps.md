@@ -45,5 +45,5 @@ The last step is not absolutely necessary but useful to check that the app compi
 
 [Starting Services](./StartingServices.md)
 
-Copyright (c) 2020 Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+Copyright (c) 2021 Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
 SPDX-License-Identifier: Apache-2.0
