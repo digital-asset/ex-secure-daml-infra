@@ -52,8 +52,8 @@ The sample is setup and run through the following steps:
 
 ## TechNotes / Interesting topics
 
+- [PKI and Certificate Revocation (CRLs, OCSP, OCSP Stapling)](./technote-ocsp-cert-revocation.md)
 - [Postgres Database Hardening](./technote-postgresql.md)
-
 
 Copyright (c) 2021 Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
 SPDX-License-Identifier: Apache-2.0

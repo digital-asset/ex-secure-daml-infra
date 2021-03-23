@@ -321,6 +321,10 @@ create_client() {
   # Validate cert is correct
   openssl verify -CAfile $ROOTDIR/certs/intermediate/certs/ca-chain.cert.pem \
       $ROOTDIR/certs/client/client1.$DOMAIN.cert.pem
+
+  openssl x509 -in $ROOTDIR/certs/client/client1.$DOMAIN.cert.pem -inform pem -outform der -out $ROOTDIR/certs/client/client1.$DOMAIN.cert.der
+  openssl pkcs8 -topk8 -inform PEM -outform DER -in $ROOTDIR/certs/client/client1.$DOMAIN.key.pem -out $ROOTDIR/certs/client/client1.$DOMAIN.key.der -nocrypt
+
 }
 
 revoke_client() {

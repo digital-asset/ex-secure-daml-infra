@@ -60,7 +60,7 @@ build_client_app() {
 run_client_app() {
 
    cd $ROOTDIR/client-app
-   java -jar $JAR ledger.$DOMAIN 6865 $CLIENT_CERT $CLIENT_KEY $CA_CERT $AUTH_TOKEN
+   java -Djava.security.properties=$ROOTDIR/java.security -Dcom.sun.net.ssl.checkRevocation=true -Djava.security.debug="certpath ocsp" -Djdk.tls.client.enableStatusRequestExtension=true -jar $JAR ledger.$DOMAIN 6865 $CLIENT_CERT $CLIENT_KEY $CA_CERT $AUTH_TOKEN
 
 }
 
