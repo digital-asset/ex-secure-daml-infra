@@ -24,7 +24,7 @@ The lockdown steps includes the following:
 
 The PostgresQL Docker image is started as follows:
 
-```aidl
+```
 docker run --name daml-postgres -d -p 5432:5432 \
   -e POSTGRES_PASSWORD="ChangeDefaultPassword!" \
   -e POSTGRES_HOST_AUTH_METHOD="scram-sha-256" \
@@ -43,7 +43,10 @@ docker run --name daml-postgres -d -p 5432:5432 \
 ```
 
 - POSTGRES_PASSWORD # Set the default super-administrative password
-- POSTGRES_HOST_AUTH_METHOD # The default authentication method. This can be ```trust``` but this bypasses all local authentication checks
+- POSTGRES_HOST_AUTH_METHOD # The default authentication method. This is the method used to authenticate inbound 
+  connections. Here we set to ```scram-sha-256``` to require a password. This can be ```trust``` but this bypasses all 
+  authentication checks, i.e. passwords are ignored. See the ```pg_hba.conf``` documentation link below
+  for more information.
 - POSTGRES_INITDB_ARGS # To support the changed authentication method we need to change the startup parameters to the DB
 - Several -v # mount various files into the Docker file system
 - ssl=on # Enable SSL for PostgresQL
@@ -66,7 +69,7 @@ non-TLS based connections.
 - This also changes the default password hash method to scram-sha-256. Note that this may break come client libraries that do not support this
 password protection method.
 
-```aidl
+```
 #!/bin/bash
 set -e
 
@@ -77,12 +80,16 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     REVOKE ALL ON SCHEMA public FROM public;
 EOSQL
 
-echo "hostssl all all all scram-sha-256 clientcert=1\nhostnossl all postgres 0.0.0.0/0 reject" > $PGDATA/pg_hba.conf
-
+echo "hostssl all all all scram-sha-256 clientcert=1 > $PGDATA/pg_hba.conf
+echo "hostnossl all postgres 0.0.0.0/0 reject" >> $PGDATA/pg_hba.conf
 ```
+
+For this example, the file is stored in ```/pg_init/init_db.sh``` directory and mounted onto the Docker container
+at container startup. The Docker initialization scripts will detect this file and apply changes.
+
 ## Enable TLS for Daml Drivers client
 
-To enable the Daml Driver-on-postgesql to connect to the database you need to set a JDBC connection URL
+To enable the Daml Driver For PostgreSQL to connect to the database you need to set a JDBC connection URL
 
 ```aidl
 # Normally one string but broken out for clarity
@@ -92,7 +99,7 @@ To enable the Daml Driver-on-postgesql to connect to the database you need to se
    password=LedgerPassword!&                # Password
    ssl=true&                                # Enable TLS Connection
    sslmode=verify-full&                     # Require that full certificate chain is validated
-   sslrootcert=$ROOTDIR/certs/intermediate/certs/ca-chain.cert.pem&  # The PKI CA trust chain (root nad intermediate)
+   sslrootcert=$ROOTDIR/certs/intermediate/certs/ca-chain.cert.pem&  # The PKI CA trust chain (root and intermediate)
    sslcert=$ROOTDIR/certs/client/client1.$DOMAIN.cert.der&  # Client Public key in DER format (see below)
    sslkey=$ROOTDIR/certs/client/client1.$DOMAIN.key.der"    # Private key in DER format
 ```
@@ -106,9 +113,9 @@ openssl pkcs8 -topk8 -inform PEM -outform DER -in $ROOTDIR/certs/client/client1.
 ```
 This is done in make-certs.sh
 
-# Other comments on CIS Benchmark standard
+# Other comments on CIS PostgreSQL Benchmark standard
 
-The CIS Standards also references many other settings that you should review for your specific deployment / environment. Many of
+The [CIS PostgresQL Benchmark](https://www.cisecurity.org/benchmark/postgresql/) also references many other settings that you should review for your specific deployment / environment. Many of
 the recommendations are already implemented within Docker image. However, many of these are less relevant for Docker deployments
 
 - Hardening of the hosting server (accounts and file permissions)
