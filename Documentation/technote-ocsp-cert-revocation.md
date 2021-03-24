@@ -25,7 +25,8 @@ Certificate Revocation mechanisms include:
 - **OCSP**
   - Protocol to allow clients of the Certificate Authority to request status of specific certs
 - **OCSP Stapling**
-  - Enhancement to OCSP to allow the server to "staple" the OCSP response removing need for individual clients to check
+  - Enhancement to OCSP to allow the server to "staple" the OCSP response removing need for individual clients to query 
+    the OCSP Responder themselves
 - **OCSP Must-Staple**
   - New extension for certificates for indicates to browsers they should expect an OCSP Staple response. This has limited support.
 - **Chrome CRLSets / Firefox OneCRL**
@@ -54,12 +55,12 @@ in the Server response of the TLS negotiation. In this way, enabled clients rece
 a copy of the response with the certificate and can validate without needing to make OCSP calls themselves.
 This is still prone to availability concerns although the server can cache the OCSP response for a while.
 
-The next two mechanisms wre mainly introduced for browsers and are not directly supported by
+The next two mechanisms were mainly introduced for browsers and are not directly supported by
 the Java JDK.
 
 **OCSP Must-Staple**. OCSP has one failing in that many clients will Soft-Fail, i.e. allow connections
-to proceed if they do not receive an OCSP response in time. This leads toa false sense of security as
-clients will not fail closed. OCSP Must-Staple is a new Certificate extension that the
+to proceed if they do not receive an OCSP response in time. This leads to a false sense of security as
+clients will not fail open (i.e. aloow client to proceed). OCSP Must-Staple is a new Certificate extension that the
 CA can set on each certificate requiring clients to receive and validate an
 OCSP response for the certificate. Unfortunately client support for this extension is
 not complete.
@@ -72,7 +73,7 @@ are found to be compromised.
 
 **Other mechanisms**
 
-Another mechanism tat can be used is to issue certificates with short lifetimes. Connections are
+Another mechanism that can be used is to issue certificates with short lifetimes. Connections are
 restricted to short periods without incurring the revocation cost / complexity.
 
 # Java, TLS and Certificate Revocation, Debug Options
@@ -110,7 +111,7 @@ TLS stack, particularly ```certpath``` (Certificate validation), ```ocsp``` (add
 ```ssl:handshake``` (TLS process handling) and ```respmgr``` (debug Response Manager which
 handles OCSP responses and other items)
 
-```aidl
+```
 -Djava.security.debug="certpath ocsp" 
 -Djavax.net.debug="ssl:handshake,verbose,respmgr" 
 ```
@@ -125,12 +126,12 @@ Implementation Notes:
 
 To be able to see the traffic flows between client and server, it can help to use Wireshark. However TLS is encrypted by default
 and traffic data is hidden. This can be resolved by enabling TLS Session key logging. See **References** for links
-to details articles and setup.
+to detailed articles and setup.
 
 For the JDK, you can use the jSSLKeyLog agent to capture the TLS session key to a file and then configure Wireshark to
 read. Wireshark is then able to decrypt the traffic, which is required to see some packate details (for example, the
 OCSP Staple response details)
-```aidl
+```
 -javaagent:$ROOTDIR/jSSLKeyLog.jar=jssl-key.log 
 ```
 
@@ -138,15 +139,21 @@ Similarly, it is also possible to trace the GRPC/Protobuf traffic by configuring
 Protobuf add-in Wireshark to use the Daml protobuf files. You may need to download Daml
 repo and Google base grpc protobuf files for this to work successfully.
 
+**Note: Security Warning** Both of these techniques will impact server performance and expose security credentials (passwords, tokens, 
+cookies) for the active sessions. These must never be used in production systems.
+
 # Certificate Revocation Demonstration
 
 ## TCP Socket, TLS OCSP and OCSP Stapling
 
-This example tests out Java JSSE implementation of OCSP and OCSP Stapling with or without client authentication.
-The server allows the client to request and download the contents of a file in the server directory. The code
-is available in:
+This example tests out a simple, cutdown Java JSSE implementation of a socket server to demonstrate OCSP and OCSP Stapling 
+with or without client authentication. The server allows the client to request and download the contents of a file in the 
+server directory. This is solely provided to allow you to see TLS protocol traffic and the transmission of client and 
+server certificates.  
 
-```aidl
+The code is available in:
+
+```
 - sockets
    - client - two clients (switch in the bash script) to connect and optionally authenticate to server
    - server - server listener that accepts connects and requests for a file contents
@@ -166,7 +173,7 @@ Sample Notes:
 - The ```ocsp.enable=true``` parameter needs to be set in java.security properties file or in code. It is not an environment or system variable
 - Java JSSE Requires JKS format certification store files so make-certs imports the certificates into trust and key stores. There are simpler ways but this aligns with the overall sample PKI hierarchy.
 
-```aidl
+```
 # Construct example two tier PKI
 ./make-certs.sh
 
@@ -187,7 +194,8 @@ Sample Notes:
 ```
 
 What do the Java parameters do?
-```aidl
+
+```
 # Enable TLS session key capture for Wireshark analysis
 -javaagent:$ROOTDIR/jSSLKeyLog.jar=jssl-key.log
 
@@ -216,14 +224,14 @@ What do the Java parameters do?
 
 The Daml Drivers allow OCSP (but currently not OCSP Stapling) to be enabled. This is enabled with the flag:
 
-```aidl
+```
 --cert-revocation-checking true
 ```
 
 NOTE: See next section for discussion on OCSP Stapling requirements
 
 Sequence to setup and run environment
-```aidl
+```
 # Ensure the following values are set to correct value in env.sh
 CLIENT_CERT_AUTH=TRUE
 LOCAL_JWT_SIGNING=TRUE
@@ -247,13 +255,11 @@ The final step demonstrates:
 
 ## Daml Server-Side OCSP Stapling
 
-The default TLS Provider used by Daml is BoringSSL. This is a simplified implementation that
-reduces the TLS code base and removes a variety of features, particularly those that are not
-used frequently. This includes OCSP Stapling.
-
-It is possible to reconfigure Daml to use the installed JDK in preference to
-Boring SSL but this currently requires a custom build of Daml API Server. The firm is evaluating the trade-off to making
-this a supported option.
+The current distribution of Daml Ledger does not support OCSP Stapling. The default TLS Provider used by Daml is BoringSSL. 
+This is a simplified implementation that reduces the TLS code base and removes a variety of features, particularly those 
+that are not used frequently, including OCSP Stapling. BoringSSL is the recommended TLS Provider for grpc-java and due to 
+simplified codebase has experienced less vulnerabilities. We would be interested to understand if this is 
+an important feature for your use case.
 
 # References
 
