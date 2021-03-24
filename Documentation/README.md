@@ -51,7 +51,7 @@ The sample is setup and run through the following steps:
 - [Implementation Notes](./ImplementationNotes.md)
 
 
-Copyright (c) 2020 Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
+Copyright (c) 2021 Digital Asset (Switzerland) GmbH and/or its affiliates. All rights reserved.
 SPDX-License-Identifier: Apache-2.0
 
 
