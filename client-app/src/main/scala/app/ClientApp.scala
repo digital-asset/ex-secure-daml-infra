@@ -13,11 +13,13 @@ import com.daml.ledger.client.configuration.LedgerIdRequirement
 import com.typesafe.scalalogging.StrictLogging
 import io.grpc.netty.GrpcSslContexts
 
+import java.lang.System._
 
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.concurrent.duration._
+import io.netty.handler.ssl.{SslProvider, SslContextBuilder}
 
 object ClientApp extends App with StrictLogging {
   private val ledgerHost = args(0)
@@ -50,7 +52,8 @@ object ClientApp extends App with StrictLogging {
   private val applicationId = ApplicationId("TlsDemo")
 
   val sslContext = GrpcSslContexts
-    .forClient()
+    //.forClient()
+    .configure(SslContextBuilder.forClient(), SslProvider.JDK)
     .keyManager(clientCert, clientKey)
     .trustManager(caCert)
     .build()
@@ -80,9 +83,10 @@ object ClientApp extends App with StrictLogging {
       val sw = new StringWriter
       e.printStackTrace(new PrintWriter(sw))
       logger.error(sw.toString)
+      exit(1)
     }
   }
 
   shutdown()
-  System.exit(0)
+  exit(0)
 }
