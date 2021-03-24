@@ -258,6 +258,7 @@ create_db() {
   openssl verify -CAfile $ROOTDIR/certs/intermediate/certs/ca-chain.cert.pem \
       $ROOTDIR/certs/server/certs/db.$DOMAIN.cert.pem
 
+  cat $ROOTDIR/certs/server/certs/db.$DOMAIN.cert.pem $ROOTDIR/certs/intermediate/certs/ca-chain.cert.pem > $ROOTDIR/certs/server/certs/db-chain.$DOMAIN.cert.pem
 }
 
 create_auth() {
