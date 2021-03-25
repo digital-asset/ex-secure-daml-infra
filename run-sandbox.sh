@@ -41,23 +41,7 @@ if [ ! -f daml-on-sql-1.10.0.jar ]; then
    wget https://github.com/digital-asset/daml/releases/download/v1.10.0/daml-on-sql-1.10.0.jar
 fi
 
-OCSP_STAPLE="TRUE"
-if [ "$OCSP_STAPLE" == "TRUE" ] ; then
-   export JDK_JAVA_OPTIONS="-javaagent:$ROOTDIR/jSSLKeyLog.jar=server.log -Djava.security.properties=$ROOTDIR/java.security -Dcom.sun.net.ssl.checkRevocation=true -Djdk.tls.client.enableStatusRequestExtension=true -Djdk.tls.server.enableStatusRequestExtension=true -Djava.security.debug='certpath ocsp' -Djavax.net.debug='ssl:handshake,verbose,respmgr'"
-   wget https://github.com/jsslkeylog/jsslkeylog/releases/download/v1.3.0/jSSLKeyLog-1.3.zip -O jSSLKeyLog-1.3.zip
-   unzip -o jSSLKeyLog-1.3.zip jSSLKeyLog.jar
-   JAR="daml-on-sql-binary_deploy.jar"
-   if [ ! -f $JAR ] ; then
-      echo "WARNING: OCSP depends on a custom build of daml-on-sql to use JDK SSLProvider"
-      exit 1
-   fi
-else
-   JAR="daml-on-sql-1.10.0.jar"
-fi
-
-echo $JDK_JAVA_OPTIONS
-
-java -jar $JAR \
+java -jar daml-on-sql-1.10.0.jar \
  ./dist/ex-secure-daml-infra-0.0.1.dar \
  --client-auth $CLIENT_CERT_AUTH_PARAM \
  --sql-backend-jdbcurl "jdbc:postgresql://db.$DOMAIN/ledger?user=ledger&password=LedgerPassword!&ssl=true&sslmode=verify-full&sslrootcert=$ROOTDIR/certs/intermediate/certs/ca-chain.cert.pem&sslcert=$ROOTDIR/certs/client/client1.$DOMAIN.cert.der&sslkey=$ROOTDIR/certs/client/client1.$DOMAIN.key.der" \
