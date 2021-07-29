@@ -25,7 +25,7 @@ docker run --name daml-postgres -d -p 5432:5432 \
   -v "$(pwd)/certs/server/private/db.$DOMAIN.key.pem:/var/lib/postgresql/db.$DOMAIN.key.pem:ro" \
   -v "$(pwd)/certs/intermediate/certs/ca-chain.cert.pem:/var/lib/postgresql/ca-chain.crt:ro" \
   -v "$(pwd)/pg-initdb:/docker-entrypoint-initdb.d:ro" \
-  postgres:12 \
+  postgres:13 \
   -c ssl=on \
   -c ssl_cert_file=/var/lib/postgresql/db.$DOMAIN.cert.pem \
   -c ssl_key_file=/var/lib/postgresql/db.$DOMAIN.key.pem \
@@ -44,12 +44,12 @@ docker stop daml-nginx
 docker rm daml-nginx
 
 docker run --name daml-nginx -p 8000:8000 -p 443:443 -p 8443:8443 \
-  -v "$(pwd)/nginx-conf:/etc/nginx:ro" \
+  -v "$(pwd)/nginx-conf/nginx.conf:/etc/nginx/nginx.conf:ro" \
   -v "$(pwd)/ui/build:/data/ui/build:ro" \
   -v "$(pwd)/certs/server/certs/web-chain.$DOMAIN.cert.pem:/etc/ssl/server.crt:ro" \
   -v "$(pwd)/certs/server/private/web.$DOMAIN.key.pem:/etc/ssl/server.key:ro" \
   -v "$(pwd)/certs/intermediate/certs/ca-chain.cert.pem:/etc/ssl/certs/ca-chain.crt:ro" \
-  -P -d nginx
+  -P -d nginx:1.19.1-alpine
 
 # Run Envoy Proxy
 

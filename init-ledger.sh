@@ -22,7 +22,7 @@ echo "Getting all current parties"
 RESULT=`curl -s --cacert ./certs/intermediate/certs/ca-chain.cert.pem $CURL_CERT_PARAM \
   -X GET -H 'Content-Type: application/json' \
   -H "Authorization: Bearer $AUTH_TOKEN" \
-  https://server.$DOMAIN:8000/v1/parties`
+  https://web.$DOMAIN:8000/v1/parties`
 
 echo $RESULT 
 echo $RESULT | jq .
@@ -32,7 +32,7 @@ echo "Getting all current DAR packages"
 RESULT=`curl -s --cacert ./certs/intermediate/certs/ca-chain.cert.pem $CURL_CERT_PARAM \
   -X GET -H 'Content-Type: application/json' \
   -H "Authorization: Bearer $AUTH_TOKEN" \
-  https://server.$DOMAIN:8000/v1/packages`
+  https://web.$DOMAIN:8000/v1/packages`
 echo $RESULT | jq .
 
 daml script --dar ./dist/ex-secure-daml-infra-0.0.1.dar \
@@ -46,6 +46,6 @@ daml script --dar ./dist/ex-secure-daml-infra-0.0.1.dar \
 RESULT=`curl -s --cacert ./certs/intermediate/certs/ca-chain.cert.pem $CURL_CERT_PARAM\
   -X GET -H 'Content-Type: application/json' \
   -H "Authorization: Bearer $AUTH_TOKEN" \
-  https://server.$DOMAIN:8000/v1/parties`
+  https://web.$DOMAIN:8000/v1/parties`
 echo $RESULT | jq .
 

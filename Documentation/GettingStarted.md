@@ -15,7 +15,7 @@ The following configuration was used to create this reference sample:
 - PostGres 12 on Docker
 - NGINX 1.19.1 on Docker
 - Envoy Proxy 1.15 on Docker
-- DAML 1.10.0
+- DAML 1.15.0
 - Python 3.9.1
 
 ## Prerequisites
