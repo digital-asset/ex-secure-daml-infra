@@ -82,7 +82,6 @@ make_jwt() {
   echo $PAYLOAD_TEMPLATE
   PAYLOAD=`echo -n "$PAYLOAD_TEMPLATE" | openssl base64 -e -A | sed s/\+/-/g | sed -E s/=+$//g`
   DIGEST=`echo -n "$HEADER.$PAYLOAD" | openssl dgst -sha256 -sign $SIGNING_KEY -binary | openssl base64 -e -A | sed s/\+/-/ | sed -E s/=+$//`
-
   JWT=$HEADER.$PAYLOAD.$DIGEST
   echo -n $JWT > certs/jwt/$1.token
   #echo "$1 Token: $JWT"

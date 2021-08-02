@@ -13,13 +13,13 @@ CLIENT_CERT_AUTH=TRUE
 LOCAL_JWT_SIGNING=TRUE
 
 # OCSP Checking
-OCSP_CHECKING=""
-#OCSP_CHECKING="--cert-revocation-checking true"
+#OCSP_CHECKING=""
+OCSP_CHECKING="--cert-revocation-checking true"
 
-DOCKER_COMPOSE=TRUE
-#DOCKER_COMPOSE=FALSE
+#DOCKER_COMPOSE=TRUE
+DOCKER_COMPOSE=FALSE
 
-DOCKER_IMAGE="digitalasset/daml-sdk:1.10.0"
+DOCKER_IMAGE="digitalasset/daml-sdk:1.15.0"
 
 # The Ledger ID is used to bootstrap the system with a known identity. This is a random UUID and should be unique to each ledger instance.
 #

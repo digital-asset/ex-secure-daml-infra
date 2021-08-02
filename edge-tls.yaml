@@ -28,8 +28,8 @@ static_resources:
         common_tls_context:
             alpn_protocols: "h2"
             tls_certificates:
-            - certificate_chain: { filename: "/data/certs/server/certs/envoy.acme.com.cert.pem" }
-              private_key: { filename: "/data/certs/server/private/envoy.acme.com.key.pem" }
+            - certificate_chain: { filename: "/etc/ssl/server.crt" }
+              private_key: { filename: "/etc/ssl/server.key" }
   clusters:
   - name: ledger.acme.com_6865
     connect_timeout: 25s
@@ -43,7 +43,7 @@ static_resources:
         - endpoint:
             address:
               socket_address:
-                address: ledger.acme.com
+                address: docker.for.mac.localhost
                 port_value: 6865
     transport_socket:
       name: envoy.transport_sockets.tls
@@ -52,11 +52,11 @@ static_resources:
         sni: ledger.acme.com
         common_tls_context: 
           tls_certificates:
-            certificate_chain: { "filename": "/data/certs/client/client1.acme.com.cert.pem" }
-            private_key: { "filename": "/data/certs/client/client1.acme.com.key.pem" }
+            certificate_chain: { "filename": "/etc/ssl/client.crt" }
+            private_key: { "filename": "/etc/ssl/client.key" }
           validation_context:
             match_subject_alt_names:
             - exact: "ledger.acme.com"
             trusted_ca:
-              filename: /data/certs/intermediate/certs/ca-chain.cert.pem
+              filename: /etc/ssl/certs/ca-chain.crt
 

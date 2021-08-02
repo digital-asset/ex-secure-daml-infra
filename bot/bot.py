@@ -1,92 +1,145 @@
 import logging
-from asyncio import sleep
-import uuid
 import datetime
-import time
 import dazl
-import dazl.client.config
 import sys
 import asyncio
-
-from dazl.model.reading import ReadyEvent, ContractCreateEvent
+import requests
+from dataclasses import dataclass, field
 
 dazl.setup_default_logger(logging.INFO)
 logging.basicConfig(filename='bot.log', level=logging.INFO)
 EPOCH = datetime.datetime.utcfromtimestamp(0)
 
-def send(party, cid, choice_name, newOwner, name):
-  logging.info(party + ' is exercising ' + choice_name + ' on ' + str(cid))
-  return dazl.exercise(cid, choice_name, {'newOwner': newOwner})
+@dataclass
+class Config:
+  party: str
+  oauth_token: str
+  url: str
+  ca_file: str
+  cert_file: str
+  cert_key_file: str
 
-def init(network: dazl.Network, owner):
-  sender_client = network.aio_party(owner)
+async def process_contracts(config: Config):
+  #--application-name "ex-secure-daml-infra" --url "https://ledger.acme.com:6865" -
+  # -cert-key-file "./certs/client/client1.acme.com.key.pem" --cert-file "./certs/client/client1.acme.com.cert.pem"
+  # --ca-file "./certs/intermediate/certs/ca-chain.cert.pem" --oauth-client-id "george123456"
+  # --oauth-client-secret "ComplexPassphrase!" --oauth-token-uri "https://auth.acme.com:4443/oauth/token"
+  # --oauth-ca-file "./certs/intermediate/certs/ca-chain.cert.pem" --oauth-audience "https://daml.com/ledger-api"
+  global donateTo
 
-def register_handler(network: dazl.Network, party):
-  party_client = network.aio_party(party)
+  async with dazl.connect(url=config.url,
+                          ca_file=config.ca_file,
+                          cert_key_file=config.cert_key_file,
+                          cert_file=config.cert_file,
+                          oauth_token=config.oauth_token
+                          ) as conn:
 
+    async for event in conn.stream("Main:Asset").creates():
 
+      if isinstance(event, dazl.ledger.api_types.CreateEvent):
+        logging.info(event.payload)
+        if event.payload['owner'] == config.party:
+          logging.info("New asset created for {}: {}".format(event.payload['owner'], event.payload['name']))
 
-  @party_client.ledger_ready()
-  async def init(event: ReadyEvent):
-    cmds = []
+          if donateTo == None:
+            logging.info("No DonorConfig for {}".format(event.payload['owner']))
 
-    # fix oddity where contracts not showing initially
-    await asyncio.sleep(5)
+          if donateTo != None and config.party != donateTo:
+            logging.info(config.party + ' is exercising Give on ' + str(event.contract_id))
+            await conn.exercise(event.contract_id, 'Give', {'newOwner': donateTo})
 
-    donateTo = None
-    assets = event.acs_find_active('Main:DonorConfig', match=lambda cdata: cdata['owner'] == party)
-    if len(assets) == 0:
-      logging.info("Initializing DonorConfig for " + party)
-      #return dazl.create('Main:DonorConfig', {'owner': party, 'donateTo': 'Alice'})
-      await party_client.submit_create('Main:DonorConfig', {'owner': party, 'donateTo': 'Alice'});
-      donateTo = 'Alice'
+async def process_donor(config: Config):
+  #--application-name "ex-secure-daml-infra" --url "https://ledger.acme.com:6865" -
+  # -cert-key-file "./certs/client/client1.acme.com.key.pem" --cert-file "./certs/client/client1.acme.com.cert.pem"
+  # --ca-file "./certs/intermediate/certs/ca-chain.cert.pem" --oauth-client-id "george123456"
+  # --oauth-client-secret "ComplexPassphrase!" --oauth-token-uri "https://auth.acme.com:4443/oauth/token"
+  # --oauth-ca-file "./certs/intermediate/certs/ca-chain.cert.pem" --oauth-audience "https://daml.com/ledger-api"
+  global donateTo
 
-    donor_config = event.acs_find_active('Main:DonorConfig', match=lambda cdata: cdata['owner'] == party)
-    for donorCid, donorData in donor_config.items():
-      donateTo = donorData['donateTo']
-    logging.info("Party: {} is configured to donate to: {}".format(party, donateTo))
+  async with dazl.connect(url=config.url,
+                          ca_file=config.ca_file,
+                          cert_key_file=config.cert_key_file,
+                          cert_file=config.cert_file,
+                          oauth_token=config.oauth_token
+                          ) as conn:
 
-    assets = event.acs_find_active('Main:Asset', match=lambda cdata: cdata['owner'] == party)
-    for assetCid, assetData in assets.items():
-      if party != donateTo:
-        cmds.append(send(party, assetCid, 'Give', donateTo, assetData['name']))
+    async for event in conn.stream("Main:DonorConfig").creates():
 
-    return cmds
+      if isinstance(event, dazl.ledger.api_types.CreateEvent):
+        logging.info(event.payload)
+        if event.payload['owner'] == config.party:
+          logging.info("DonorConfig for {}: {}".format(event.payload['owner'], event.payload['donateTo']))
 
-  @party_client.ledger_created('Main:Asset')
-  async def ping(event: ContractCreateEvent):
-    cmds = []
+          donateTo = event.payload['donateTo']
 
-    if event.cdata['owner'] == party:
-      logging.info("New asset created for {}: {}".format(event.cdata['owner'], event.cdata['name']))
-      #await sleep(1)
-      #return send(party, event.cid, 'RespondPong', event.cdata['count'])
+async def run_tasks(config: Config):
 
-    donateTo = None
-    donor_config = event.acs_find_active('Main:DonorConfig', match=lambda cdata: cdata['owner'] == party)
-    for donorCid, donorData in donor_config.items():
-      donateTo = donorData['donateTo']
+  task1 = asyncio.create_task(process_contracts(config))
+  task2 = asyncio.create_task(process_donor(config))
 
-    logging.info("Party: {} is configured to donate to: {}".format(party, donateTo))
+  await task1
+  await task2
 
-    assets = event.acs_find_active('Main:Asset', match=lambda cdata: cdata['owner'] == party)
-    for assetCid, assetData in assets.items():
-      if party != donateTo:
-        cmds.append(send(party, assetCid, 'Give', donateTo, assetData['name']))
-
-    return cmds
-
-def dazl_main(network):
-
-  network.set_config(
-    url="http://ledger.acme.com:6865",
-  )
-  init(network, 'George')
-  register_handler(network, 'George')
+donateTo = None
 
 def main(argv):
 
-  dazl.run(dazl_main)
+  logging.info(argv)
+  party = argv[0]
+  application_id = argv[1]
+  url = argv[2]
+  ca_file = argv[3]
+  cert_file = argv[4]
+  cert_key_file = argv[5]
+  oauth_client_id = argv[6]
+  oauth_client_secret = argv[7]
+  oauth_token_uri = argv[8]
+  oauth_ca_file = argv[9]
+  oauth_audience = argv[10]
+
+  if oauth_audience == None:
+    logging.error("ERROR: Need to supply an oAuth audience")
+    return
+
+  headers = {"Accept": "application/json"}
+  data = {
+    "client_id": oauth_client_id,
+    "client_secret": oauth_client_secret,
+    "audience": oauth_audience,
+    "grant_type": "client_credentials",
+    "application_id": application_id
+  }
+
+  if oauth_token_uri is None:
+    logging.error("Token URI not set")
+    return
+
+  response = None
+  try:
+    response = requests.post(
+      oauth_token_uri,
+      headers=headers,
+      data=data,
+      auth=None,
+      verify=oauth_ca_file,
+    )
+  except Exception as ex:
+    logging.info(ex)
+    logging.error("Unable to get token at this time")
+    return
+
+  if response.status_code != 200:
+    logging.error("ERROR: Unable to retrieve token. Exiting")
+    return
+
+  json = response.json()
+  oauth_token = json['access_token']
+
+  config = Config(party,oauth_token, url, ca_file, cert_file, cert_key_file)
+
+  logging.info(config.oauth_token)
+
+  asyncio.run(run_tasks(config))
 
 if __name__ == '__main__':
   main(sys.argv[1:])

@@ -1,7 +1,7 @@
 version: '3.8'
 services:
   daml-postgres:
-    image: postgres:12
+    image: postgres:13
     ports:
       - "5432:5432"
     command: -c ssl=on -c ssl_cert_file=/data/certs/server/certs/db.$DOMAIN.cert.pem -c ssl_key_file=/data/certs/server/private/db.$DOMAIN.key.pem -c ssl_ca_file=/data/certs/intermediate/certs/ca-chain.cert.pem -c ssl_min_protocol_version="TLSv1.2" -c ssl_ciphers="HIGH:!MEDIUM:+3DES:!aNULL"
