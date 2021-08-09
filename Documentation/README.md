@@ -17,7 +17,7 @@ though the concepts should work with a number of others, e.g. Okta, OneLogin, Pi
 to public social media Identity services, including Google, Facebook, LinkedIn, etc. 
 
 We do not attempt to demonstrate complex DAML workflows as these are covered in other Reference Applications. We also use a single PostgresQL 
-database as the peristence tier. This can be replaced with a full Distributed Ledger implementation but that is not covered
+database as the persistence tier. This can be replaced with a full Distributed Ledger implementation but that is not covered
 in this sample. 
 
 ## Disclaimer
