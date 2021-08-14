@@ -1,5 +1,5 @@
 {
-  "domain": "<autho-tenant-domain>.auth0.com",
-  "clientId": "<auth0-client-id>",
+  "domain": "digitalasset-dev.auth0.com",
+  "clientId": "Pe2Emu15eRdBHsXi0aEvyefaoSEz6jko",
   "audience": "https://daml.com/ledger-api"
 }

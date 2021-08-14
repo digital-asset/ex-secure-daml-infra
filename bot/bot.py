@@ -101,6 +101,9 @@ def main(argv):
     logging.error("ERROR: Need to supply an oAuth audience")
     return
 
+  if oauth_ca_file == "None":
+    oauth_ca_file = None
+
   headers = {"Accept": "application/json"}
   data = {
     "client_id": oauth_client_id,

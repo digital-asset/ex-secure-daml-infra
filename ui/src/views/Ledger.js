@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import { useAuth0 } from "../react-auth0-spa";
+import { useAuth0 } from "@auth0/auth0-react";
 
 const Ledger = () => {
   const [showResult, setShowResult] = useState(false);
   const [apiMessage, setApiMessage] = useState("");
-  const { getTokenSilently } = useAuth0();
+  const { getAccessTokenSilently } = useAuth0();
 
   /*useEffect(() => {
     let id = setInterval(() => {
@@ -18,7 +18,7 @@ const Ledger = () => {
       const audienceOptions = {
         audience: 'https://daml.com/ledger-api'
       };
-      const token = await getTokenSilently(audienceOptions);
+      const token = await getAccessTokenSilently(audienceOptions);
       console.log(token);
 
       const response = await fetch("/v1/query", {
@@ -26,6 +26,7 @@ const Ledger = () => {
           Authorization: `Bearer ${token}`
         }
       });
+      console.log(response);
 
       const responseData = await response.json();
 

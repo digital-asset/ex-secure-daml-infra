@@ -1,33 +1,46 @@
 {
-  "name": "auth0-react-01-login",
+  "name": "auth0-react-sample",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "start": "BROWSER=NONE SKIP_PREFLIGHT_CHECK=true react-scripts start",
-    "build": "SKIP_PREFLIGHT_CHECK=true react-scripts build",
-    "test": "SKIP_PREFLIGHT_CHECK=true react-scripts test",
-    "eject": "SKIP_PREFLIGHT_CHECK=true react-scripts eject"
+    "start": "npm-run-all --parallel spa api-server",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jest-environment-jsdom-sixteen",
+    "eject": "react-scripts eject",
+    "spa": "react-scripts start",
+    "server": "node server.js",
+    "server:dev": "nodemon server.js",
+    "api-server": "node api-server.js",
+    "api-server:dev": "nodemon api-server.js",
+    "dev": "npm-run-all --parallel spa api-server:dev",
+    "prod": "npm-run-all --parallel server api-server"
   },
   "proxy": "https://<PROXY_HOST>:8000",
   "dependencies": {
-    "@auth0/auth0-spa-js": "^1.10.0",
-    "@fortawesome/fontawesome-svg-core": "^1.2.29",
-    "@fortawesome/free-solid-svg-icons": "^5.13.1",
-    "@fortawesome/react-fontawesome": "^0.1.11",
+    "@auth0/auth0-react": "^1.6.0",
+    "@fortawesome/fontawesome-svg-core": "^1.2.17",
+    "@fortawesome/free-solid-svg-icons": "^5.8.1",
+    "@fortawesome/react-fontawesome": "^0.1.4",
+    "cors": "^2.8.5",
     "express": "^4.16.4",
-    "highlight.js": "^10.1.1",
-    "morgan": "^1.10.0",
-    "react": "^16.13.1",
-    "react-dom": "^16.13.1",
+    "express-jwt": "^6.0.0",
+    "helmet": "^4.4.1",
+    "highlight.js": "^10.0.3",
+    "jwks-rsa": "^1.12.2",
+    "morgan": "^1.9.1",
+    "npm-run-all": "^4.1.5",
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1",
     "react-router-dom": "^5.2.0",
-    "react-scripts": "4.0.3",
-    "reactstrap": "^8.4.1"
+    "reactstrap": "^8.0.0"
   },
-  "devDependencies": {},
-  "resolutions": {
-    "webpack": "4.43.0",
-    "webpack-dev-server": "3.11.0",
-    "chokidar": "^3.4.0"
+  "devDependencies": {
+    "@testing-library/jest-dom": "^5.10.1",
+    "@testing-library/react": "^11.2.5",
+    "jest-environment-jsdom-sixteen": "^1.0.3",
+    "jest-fetch-mock": "^3.0.3",
+    "nodemon": "^2.0.4",
+    "react-scripts": "^4.0.3"
   },
   "eslintConfig": {
     "extends": "react-app"

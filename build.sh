@@ -21,6 +21,7 @@ fi
 
 if [ 'TRUE' == "$DOCKER_COMPOSE" ] ; then
   cat edge-tls.yaml-cicd-template | sed -e "s;<EDGE_TARGET>;$EDGE_TARGET;g" | sed -e "s;<DOMAIN>;$DOMAIN;g" > edge-tls.yaml
+  #docker build -t authnode:latest -f ./Dockerfile.authnode .
 else
   cat edge-tls.yaml-template | sed -e "s;<EDGE_TARGET>;$EDGE_TARGET;g" | sed -e "s;<DOMAIN>;$DOMAIN;g" > edge-tls.yaml
 fi
