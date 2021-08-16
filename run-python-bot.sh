@@ -33,5 +33,6 @@ else
    $GEORGE_CLIENT_ID \
    $GEORGE_CLIENT_SECRET \
    "https://digitalasset-dev.auth0.com/oauth/token" \
+   "None" \
    "https://daml.com/ledger-api"
 fi

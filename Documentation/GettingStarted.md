@@ -12,11 +12,11 @@ The following configuration was used to create this reference sample:
   The provided scripts will not work with the default LibreSSL 1.0 supplied by Apple or earlier version of OpenSSL.
 - Docker Desktop for Mac 3.1.0(51484) (Engine 20.10.02) 
 - Docker Compose 1.27.4
-- PostGres 12 on Docker
+- PostGres 13 Docker
 - NGINX 1.19.1 on Docker
 - Envoy Proxy 1.15 on Docker
 - DAML 1.15.0
-- Python 3.9.1
+- Python 3.9.6
 
 ## Prerequisites
 

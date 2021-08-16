@@ -3,34 +3,27 @@ import { Container, Row, Col } from "reactstrap";
 
 import Highlight from "../components/Highlight";
 import Loading from "../components/Loading";
-import { useAuth0 } from "../react-auth0-spa";
+import { useAuth0, withAuthenticationRequired } from "@auth0/auth0-react";
 
-const Profile = () => {
+export const ProfileComponent = () => {
   const [apiToken, setApiToken] = useState("");
-  const { loading, user, getTokenSilently } = useAuth0();
-  useEffect(() => {
-    fetchToken();
-    let id = setInterval(() => {
-        fetchToken();
-    }, 60000);
-    return () => clearInterval(id);
-  });
+  const { loading, user, getAccessTokenSilently } = useAuth0();
+    useEffect(() => {
+        (async () => {
+            try {
+                const token = await getAccessTokenSilently({
+                    audience: 'https://daml.com/ledger-api',
+                });
+                setApiToken(token);
+            } catch (e) {
+                console.error(e);
+            }
+        })();
+    }, [getAccessTokenSilently]);
 
   if (loading || !user) {
-    return <Loading />;
+      return <Loading/>;
   }
-
-  const fetchToken = async () => {
-    try {
-      const audienceOptions = {
-        audience: 'https://daml.com/ledger-api'
-      };
-      const token = await getTokenSilently(audienceOptions);
-      setApiToken(token);
-    } catch (error) {
-      console.error(error);
-    }
-  };
 
   return (
     <Container className="mb-5">
@@ -67,4 +60,6 @@ const Profile = () => {
   );
 };
 
-export default Profile;
+export default withAuthenticationRequired(ProfileComponent, {
+  onRedirecting: () => <Loading />,
+});

@@ -2,14 +2,13 @@ import React from "react";
 import { Router, Route, Switch } from "react-router-dom";
 import { Container } from "reactstrap";
 
-import PrivateRoute from "./components/PrivateRoute";
 import Loading from "./components/Loading";
 import NavBar from "./components/NavBar";
 import Footer from "./components/Footer";
 import Home from "./views/Home";
 import Ledger from "./views/Ledger";
 import Profile from "./views/Profile";
-import { useAuth0 } from "./react-auth0-spa";
+import { useAuth0 } from "@auth0/auth0-react";
 import history from "./utils/history";
 
 // styles
@@ -20,9 +19,13 @@ import initFontAwesome from "./utils/initFontAwesome";
 initFontAwesome();
 
 const App = () => {
-  const { loading } = useAuth0();
+  const { isLoading, error } = useAuth0();
 
-  if (loading) {
+  if (error) {
+    return <div>Oops... {error.message}</div>;
+  }
+
+  if (isLoading) {
     return <Loading />;
   }
 
@@ -33,8 +36,8 @@ const App = () => {
         <Container className="flex-grow-1 mt-5">
           <Switch>
             <Route path="/" exact component={Home} />
-            <PrivateRoute path="/ledger" component={Ledger} />
-            <PrivateRoute path="/profile" component={Profile} />
+            <Route path="/ledger" component={Ledger} />
+            <Route path="/profile" component={Profile} />
           </Switch>
         </Container>
         <Footer />

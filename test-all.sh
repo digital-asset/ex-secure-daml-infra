@@ -16,7 +16,7 @@ chmod u+x /usr/local/bin/grpcurl
 
 cd ~
 export TERM=xterm-256color
-curl -sSL https://get.daml.com/ | sh /dev/stdin  1.15.0
+curl -sSL https://get.daml.com/ | sh /dev/stdin  1.16.0
 
 export PATH=/root/.daml/bin:/usr/local/bin:$PATH
 cd /data

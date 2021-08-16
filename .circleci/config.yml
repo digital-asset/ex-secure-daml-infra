@@ -33,13 +33,26 @@ jobs:
       - checkout
 
       - run:
+          name: Setup Docker
+          command: |
+            if [[ $CIRCLE_SHELL_ENV == *"localbuild"* ]]; then
+              echo "This is a local build. Enabling sudo for docker"
+              echo "export docker='sudo docker'" >> $BASH_ENV
+              echo "export docker_compose='sudo docker-compose'" >> $BASH_ENV
+            else
+              echo "This is not a local build. Disabling sudo for docker"
+              echo "export docker='docker'" >> $BASH_ENV
+              echo "export docker_compose='docker-compose'" >> $BASH_ENV
+            fi
+
+      - run:
           name: Install Node and Yarn
           command: |
 
             set -e
 
             export NPM_CONFIG_LOGLEVEL="info"
-            export NODE_VERSION="14.7.0"
+            export NODE_VERSION="16.5.0"
             export YARN_VERSION="1.22.4"
             curl -o- https://raw.githubusercontent.com/creationix/nvm/v0.33.5/install.sh | bash
             export NVM_DIR="$HOME/.nvm"
@@ -61,7 +74,7 @@ jobs:
           name: Set up environment and certificates
           command: |
             set -x
-            export PATH=${HOME}/.daml/bin:$HOME/.nvm/versions/node/v14.7.0/bin:${PATH}
+            export PATH=${HOME}/.daml/bin:$HOME/.nvm/versions/node/v16.5.0/bin:${PATH}
 
             cp env.sh-cicd-template env.sh
             cp docker-compose.env-cicd-template docker-compose.env
@@ -74,50 +87,66 @@ jobs:
             ./make-jwt.sh
 
       - setup_remote_docker:
-          version: 19.03.12
+          version: 19.03.14
 
       - run:
           name: Start containers
           command: |
             set -x
-            docker build -t authnode:latest -f ./Dockerfile.authnode .
+            $docker build -t authnode:latest -f ./Dockerfile.authnode .
 
-            docker volume create data
-            docker run -d -i -t -v data:/data --name=data-uploader alpine:latest sh
+            if $docker volume inspect data > /dev/null 2>/dev/null ; then
+                $docker volume rm data
+            fi
+
+            $docker volume create data
+            $docker run -d -i -t -v data:/data --name=data-uploader alpine:latest sh
             echo "Copy data to Docker volume..."
-            docker cp . data-uploader:/data
+            $docker cp . data-uploader:/data
             echo "Fixing permissions..."
-            docker exec -it data-uploader sh -c "cd data; ./fix-permissions.sh"
-            docker stop data-uploader
-            docker-compose --env-file=docker-compose.env up -d
+            $docker exec -it data-uploader sh -c "cd data; ./fix-permissions.sh"
+            #$docker stop data-uploader
+            $docker_compose --env-file=docker-compose.env up -d
 
       - run:
           name: Tests
+          no_output_timeout: 30m
           command: |
             set -x
             exec < /dev/tty
-            docker-compose exec daml-testnode sh -c "cd /data; ./test-all.sh > logs/test-all.log"
-            docker cp data-uploader:/data/logs .
+            $docker_compose exec daml-testnode sh -c "cd /data; ./test-all.sh > logs/test-all.log"
+            $docker cp data-uploader:/data/logs .
 
       - run:
           name: Shutdown environment
           command: |
-            docker-compose logs --no-color --tail=100000 daml-ledger > logs/ledger-logs.txt
-            docker-compose logs --no-color --tail=100000 daml-init > logs/init-logs.txt
-            docker-compose logs --no-color --tail=100000 daml-nginx > logs/nginx-logs.txt
-            docker-compose logs --no-color --tail=100000 daml-envoyproxy > logs/envoyproxy-logs.txt
-            docker-compose logs --no-color --tail=100000 daml-jsonapi > logs/jsonapi-logs.txt
-            docker-compose logs --no-color --tail=100000 daml-navigator > logs/navigator-logs.txt
-            docker-compose logs --no-color --tail=100000 daml-trigger > logs/trigger-logs.txt
-            docker-compose logs --no-color --tail=100000 daml-postgres > logs/postgres-logs.txt
-            docker-compose logs --no-color --tail=100000 daml-testnode > logs/testnode-logs.txt
-            docker-compose logs --no-color --tail=100000 daml-authnode > logs/authnode-logs.txt
+            $docker_compose logs --no-color --tail=100000 daml-ledger > logs/ledger-logs.txt
+            $docker_compose logs --no-color --tail=100000 daml-init > logs/init-logs.txt
+            $docker_compose logs --no-color --tail=100000 daml-nginx > logs/nginx-logs.txt
+            $docker_compose logs --no-color --tail=100000 daml-envoyproxy > logs/envoyproxy-logs.txt
+            $docker_compose logs --no-color --tail=100000 daml-jsonapi > logs/jsonapi-logs.txt
+            $docker_compose logs --no-color --tail=100000 daml-navigator > logs/navigator-logs.txt
+            $docker_compose logs --no-color --tail=100000 daml-trigger > logs/trigger-logs.txt
+            $docker_compose logs --no-color --tail=100000 daml-postgres > logs/postgres-logs.txt
+            $docker_compose logs --no-color --tail=100000 daml-testnode > logs/testnode-logs.txt
+            $docker_compose logs --no-color --tail=100000 daml-authnode > logs/authnode-logs.txt
 
-            docker-compose --env-file=docker-compose.env down
-            docker stop data-uploader
-            docker rm data-uploader
+            $docker_compose --env-file=docker-compose.env down
+
+            $docker cp logs/ data-uploader:/data
+            $docker stop data-uploader
+            $docker rm data-uploader
           when: always
 
+  write_results:
+    docker:
+      - image: circleci/buildpack-deps:latest
+    working_directory: /home/circleci/ex-secure-daml-infra
+
+    environment:
+      TEST_RESULTS: /tmp/test-results
+
+    steps:
       - store_artifacts:
           path: logs
           destination: raw-test-output/logs
@@ -131,4 +160,11 @@ workflows:
   build_and_test:
     jobs:
       - ledger_test:
-          daml_sdk_version: "1.15.0"
+          daml_sdk_version: "1.16.0"
+      - write_results:
+          requires:
+            - ledger_test
+
+
+
+
