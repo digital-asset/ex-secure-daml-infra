@@ -42,9 +42,14 @@ if [ ! -f daml-on-sql-1.16.0.jar ]; then
 fi
 
 if [ "$OCSP_CHECKING" != "" ]; then
-  JAVA_OCSP=(-javaagent:$ROOTDIR/jSSLKeyLog.jar=jssl-key.log -Djava.security.debug='certpath ocsp' -Djavax.net.debug='ssl:handshake' -Djava.security.properties=$ROOTDIR/java.security -Dcom.sun.net.ssl.checkRevocation=true -Djdk.tls.client.enableStatusRequestExtension=true -Djdk.tls.server.enableStatusRequestExtension=true -Djavax.net.ssl.trustStore=$ROOTDIR/certs/intermediate/certs/local-truststore.jks -Djavax.net.ssl.trustStorePassword=changeit)
+  if [ ! -f jSSLKeyLog-1.3.zip ] ; then
+     wget https://github.com/jsslkeylog/jsslkeylog/releases/download/v1.3.0/jSSLKeyLog-1.3.zip
+  fi 
+  unzip -o jSSLKeyLog-1.3.zip jSSLKeyLog.jar
+  JAVA_OCSP=(--show-version -javaagent:$ROOTDIR/jSSLKeyLog.jar=jssl-key.log -Djava.security.debug='certpath ocsp' -Djavax.net.debug='ssl:handshake' -Djava.security.properties=$ROOTDIR/java.security -Dcom.sun.net.ssl.checkRevocation=true -Djdk.tls.client.enableStatusRequestExtension=true -Djdk.tls.server.enableStatusRequestExtension=true -Djavax.net.ssl.trustStore=$ROOTDIR/certs/intermediate/certs/local-truststore.jks -Djavax.net.ssl.trustStorePassword=changeit)
 else
-  JAVA_OCSP=()
+  # Horrible hack as command below fails if Bash array is empty. Effective no-op to show Java version and continue
+  JAVA_OCSP=(--show-version)
 fi
 
 java \

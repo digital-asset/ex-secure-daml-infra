@@ -13,8 +13,8 @@ CLIENT_CERT_AUTH=TRUE
 LOCAL_JWT_SIGNING=TRUE
 
 # OCSP Checking
-OCSP_CHECKING=""
-#OCSP_CHECKING="--cert-revocation-checking true"
+#OCSP_CHECKING=""
+OCSP_CHECKING="--cert-revocation-checking true"
 
 #DOCKER_COMPOSE=TRUE
 DOCKER_COMPOSE=FALSE
