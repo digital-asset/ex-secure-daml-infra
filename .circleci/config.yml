@@ -160,7 +160,7 @@ workflows:
   build_and_test:
     jobs:
       - ledger_test:
-          daml_sdk_version: "1.16.0"
+          daml_sdk_version: "1.17.1"
       - write_results:
           requires:
             - ledger_test

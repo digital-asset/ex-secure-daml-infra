@@ -16,12 +16,12 @@ fi
 
 ./get-json-api-token.sh
 
-if [ ! -f http-json-1.16.0.jar ]; then
-   wget -q https://github.com/digital-asset/daml/releases/download/v1.16.0/http-json-1.16.0.jar
+if [ ! -f http-json-1.17.1.jar ]; then
+   wget -q https://github.com/digital-asset/daml/releases/download/v1.17.1/http-json-1.17.1.jar
 fi
 
 
-java -jar http-json-1.16.0.jar --ledger-host ledger.$DOMAIN \
+java -jar http-json-1.17.1.jar --ledger-host ledger.$DOMAIN \
   --ledger-port 6865 --address 127.0.0.1 \
   --http-port 7575 --max-inbound-message-size 4194304 \
   --package-reload-interval 5s \
@@ -30,7 +30,7 @@ java -jar http-json-1.16.0.jar --ledger-host ledger.$DOMAIN \
   --tls \
   --access-token-file=certs/jwt/json.token
 
-java -jar http-json-1.16.0.jar --ledger-host ledger.$DOMAIN \
+java -jar http-json-1.17.1.jar --ledger-host ledger.$DOMAIN \
   --ledger-port 6865 --address 127.0.0.1 \
   --http-port 7575 --max-inbound-message-size 4194304 \
   --package-reload-interval 5s \
