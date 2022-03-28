@@ -1,4 +1,4 @@
-FROM python:3.9.6-alpine3.14
+FROM python:3.9.10-alpine3.15
 
 RUN apk add gcc musl-dev python3-dev libffi-dev openssl-dev linux-headers make g++
 RUN apk add py3-grpcio>1.29.1 py3-protobuf
